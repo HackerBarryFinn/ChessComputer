@@ -1,0 +1,38 @@
+{
+  "version": 3,
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 22,
+    "patch": 0
+  },
+  "configurePresets": [
+    {
+      "name": "msvc-release",
+      "displayName": "MSVC Release",
+      "generator": "Ninja",
+      "description": "Release mit MSVC + LTO",
+      "binaryDir": "${sourceDir}/out/build/msvc-release",
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Release",
+        "ENABLE_LTO": "ON",
+        "ENABLE_SAN": "OFF"
+      }
+    },
+    {
+      "name": "clang-debug",
+      "displayName": "Clang-cl Debug + Sanitizer",
+      "generator": "Ninja",
+      "description": "Debug mit Clang-Cl + ASan/UBSan",
+      "binaryDir": "${sourceDir}/out/build/clang-debug",
+      "environment": {
+        "CC": "clang-cl",
+        "CXX": "clang-cl"
+      },
+      "cacheVariables": {
+        "CMAKE_BUILD_TYPE": "Debug",
+        "ENABLE_LTO": "OFF",
+        "ENABLE_SAN": "ON"
+      }
+    }
+  ]
+}
