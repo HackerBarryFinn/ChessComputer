@@ -7,7 +7,8 @@ int main() {
 
     std::cout << "Startposition initialisiert!" << std::endl;
 
-    printBitboard(board.bitboards[WHITE][ROOK]);
+    printBitboard(board.bitboards[WHITE][PAWN]);
+    printBoard(board);
 
     return 0;
 }

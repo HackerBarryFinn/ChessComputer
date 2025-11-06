@@ -38,3 +38,29 @@ void printBitboard(const uint64_t bitboard) {
     }
     std::cout << "\n   a b c d e f g h\n" << std::endl;
 }
+
+void printBoard(const Board& board) {
+    for (int rank = 7; rank >= 0; --rank) {
+        std::cout << rank + 1 << "  ";
+        for (int file = 0; file < 8; ++file) {
+            int square = rank * 8 + file;
+            char pieceChar = '.';
+
+            for (int color = WHITE; color <= BLACK; ++color) {
+                for (int pt = PAWN; pt <= KING; ++pt) {
+                    if ((board.bitboards[color][pt] >> square) & 1ULL) {
+                        static const char symbols[2][6] = {
+                            {'P','N','B','R','Q','K'},
+                            {'p','n','b','r','q','k'}
+                        };
+                        pieceChar = symbols[color][pt];
+                    }
+                }
+            }
+            std::cout << pieceChar << " ";
+        }
+        std::cout << std::endl;
+    }
+    std::cout << "\n   a b c d e f g h\n" << std::endl;
+}
+
