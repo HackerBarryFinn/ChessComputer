@@ -4,6 +4,7 @@
 
 
 enum Color { WHITE = 0, BLACK = 1 };
+
 enum PieceType { PAWN = 0, KNIGHT = 1, BISHOP = 2, ROOK = 3, QUEEN = 4, KING = 5 };
 
 // Bitboard
@@ -20,6 +21,8 @@ struct Board {
     bool blackQueensideCastle = true;
 };
 
-void initBitboards(Board& board);
+void initBitboards(Board &board);
+
 void printBitboard(uint64_t bitboard);
-void printBoard(const Board& board);
+
+void printBoard(const Board &board);
