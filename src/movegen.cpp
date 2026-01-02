@@ -1,5 +1,5 @@
-#include "movegen.h"
-#include "utils.h"   // für bitScanForward
+#include "../include/movegen.h"
+#include "../include/utils.h"
 
 std::vector<Move> generatePawnMoves(const Board &board, Color side) {
     std::vector<Move> moves;

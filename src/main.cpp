@@ -1,9 +1,9 @@
 #include <iostream>
 #include <string>
-#include "board.h"
-#include "movegen.h"
-#include "fen.h"
-#include "makemove.h"
+#include "../include/board.h"
+#include "../include/movegen.h"
+#include "../include/fen.h"
+#include "../include/makemove.h"
 
 static std::string squareToString(int sq) {
     int file = sq % 8;

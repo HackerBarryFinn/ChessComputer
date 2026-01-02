@@ -1,4 +1,4 @@
-#include "fen.h"
+#include "../include/fen.h"
 #include <cctype>
 #include <sstream>
 

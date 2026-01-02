@@ -4,23 +4,23 @@ project(ChessComputer)
 set(CMAKE_CXX_STANDARD 20)
 
 add_executable(ChessComputer src/main.cpp
-        src/board.h
+        include/board.h
         src/board.cpp
         src/movegen.cpp
-        src/movegen.h
-        src/utils.h
+        include/movegen.h
+        include/utils.h
         src/figures/pawns.cpp
         src/figures/knights.cpp
         src/figures/sliding.cpp
         src/figures/king.cpp
         src/attacks.cpp
-        src/attacks.h
+        include/attacks.h
         src/fen.cpp
-        src/fen.h
+        include/fen.h
         src/makemove.cpp
-        src/makemove.h
-        src/figures/king.h
-        src/figures/knights.h
-        src/figures/pawns.h
-        src/figures/sliding.h
+        include/makemove.h
+        include/figures/king.h
+        include/figures/knights.h
+        include/figures/pawns.h
+        include/figures/sliding.h
 )

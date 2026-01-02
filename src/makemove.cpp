@@ -1,4 +1,4 @@
-#include "makemove.h"
+#include "../include/makemove.h"
 
 static inline uint64_t sqBB(int sq) { return 1ULL << sq; }
 
