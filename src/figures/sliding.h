@@ -1,0 +1,8 @@
+//
+// Created by lucas on 02.01.2026.
+//
+
+#ifndef CHESSCOMPUTER_SLIDING_H
+#define CHESSCOMPUTER_SLIDING_H
+
+#endif //CHESSCOMPUTER_SLIDING_H

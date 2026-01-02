@@ -1,0 +1,8 @@
+//
+// Created by lucas on 02.01.2026.
+//
+
+#ifndef CHESSCOMPUTER_KNIGHTS_H
+#define CHESSCOMPUTER_KNIGHTS_H
+
+#endif //CHESSCOMPUTER_KNIGHTS_H
