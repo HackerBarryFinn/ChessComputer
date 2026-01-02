@@ -17,4 +17,6 @@ add_executable(ChessComputer src/main.cpp
         src/attacks.h
         src/fen.cpp
         src/fen.h
+        src/makemove.cpp
+        src/makemove.h
 )

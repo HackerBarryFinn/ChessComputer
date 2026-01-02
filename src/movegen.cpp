@@ -23,7 +23,7 @@ std::vector<Move> generatePawnMoves(const Board &board, Color side) {
             m.moved = PAWN;
             m.promotion = static_cast<int>(p);
             m.flags = baseFlags;
-            if (isCapture) m.captured = -1; // optional: wird später beim makeMove ermittelt
+            // captured bleibt -1 (kann später beim makeMove ermittelt werden)
             moves.push_back(m);
         }
     };
@@ -42,7 +42,7 @@ std::vector<Move> generatePawnMoves(const Board &board, Color side) {
         temp &= temp - 1;
         int from = to - shift;
 
-        const bool isPromotion = ((singlePushes & (1ULL << to)) & promoRank) != 0;
+        const bool isPromotion = ((1ULL << to) & promoRank) != 0;
 
         if (isPromotion) {
             pushPromotionMoves(from, to, /*isCapture*/false);
@@ -144,7 +144,7 @@ std::vector<Move> generatePawnMoves(const Board &board, Color side) {
         }
     }
 
-    // En Passant
+    // En Passant (pseudo-legal)
     if (board.enPassantTarget != 0ULL) {
         uint64_t ep = board.enPassantTarget;
 
@@ -216,6 +216,20 @@ std::vector<Move> generatePawnMoves(const Board &board, Color side) {
             }
         }
     }
+
+    return moves;
+}
+
+std::vector<Move> generatePseudoLegalMoves(const Board &board, Color side) {
+    std::vector<Move> moves;
+
+    auto pawnMoves = generatePawnMoves(board, side);
+    moves.insert(moves.end(), pawnMoves.begin(), pawnMoves.end());
+
+    // TODO als nächstes:
+    // - Springer
+    // - Sliding (Bishop/Rook/Queen)
+    // - König (+ Castling)
 
     return moves;
 }
