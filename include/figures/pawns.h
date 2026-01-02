@@ -1,8 +1,7 @@
-//
-// Created by lucas on 02.01.2026.
-//
+#pragma once
 
-#ifndef CHESSCOMPUTER_PAWNS_H
-#define CHESSCOMPUTER_PAWNS_H
+#include "../board.h"
+#include "../movegen.h"
+#include <vector>
 
-#endif //CHESSCOMPUTER_PAWNS_H
+std::vector<Move> generatePawnMoves(const Board& board, Color side);
