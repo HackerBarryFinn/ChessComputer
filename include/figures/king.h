@@ -1,8 +1,7 @@
-//
-// Created by lucas on 02.01.2026.
-//
+#pragma once
 
-#ifndef CHESSCOMPUTER_KING_H
-#define CHESSCOMPUTER_KING_H
+#include "../board.h"
+#include "../movegen.h"
+#include <vector>
 
-#endif //CHESSCOMPUTER_KING_H
+std::vector<Move> generateKingMoves(const Board& board, Color side);
