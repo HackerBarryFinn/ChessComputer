@@ -19,4 +19,8 @@ add_executable(ChessComputer src/main.cpp
         src/fen.h
         src/makemove.cpp
         src/makemove.h
+        src/figures/king.h
+        src/figures/knights.h
+        src/figures/pawns.h
+        src/figures/sliding.h
 )
