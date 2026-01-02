@@ -1,8 +1,7 @@
-//
-// Created by lucas on 02.01.2026.
-//
+#pragma once
 
-#ifndef CHESSCOMPUTER_KNIGHTS_H
-#define CHESSCOMPUTER_KNIGHTS_H
+#include "../board.h"
+#include "../movegen.h"
+#include <vector>
 
-#endif //CHESSCOMPUTER_KNIGHTS_H
+std::vector<Move> generateKnightMoves(const Board& board, Color side);
