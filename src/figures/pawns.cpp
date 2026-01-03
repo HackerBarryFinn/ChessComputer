@@ -27,7 +27,6 @@ std::vector<Move> generatePawnMoves(const Board &board, Color side) {
         }
     };
 
-    // Richtung abhängig von der Farbe
     int shift = (side == WHITE) ? 8 : -8;
 
     // Einfache Vorwärtszüge
@@ -44,7 +43,7 @@ std::vector<Move> generatePawnMoves(const Board &board, Color side) {
         const bool isPromotion = ((1ULL << to) & promoRank) != 0;
 
         if (isPromotion) {
-            pushPromotionMoves(from, to, /*isCapture*/false);
+            pushPromotionMoves(from, to, false);
         } else {
             Move m;
             m.from = from;
@@ -55,7 +54,7 @@ std::vector<Move> generatePawnMoves(const Board &board, Color side) {
         }
     }
 
-    // Doppelzüge (nur von Grundreihe)
+    // Doppelzüge
     if (side == WHITE) {
         uint64_t rank2 = 0x000000000000FF00ULL;
         uint64_t doublePushes = ((pawns & rank2) << 16)
@@ -94,12 +93,12 @@ std::vector<Move> generatePawnMoves(const Board &board, Color side) {
         }
     }
 
-    // Schlagzüge (links/rechts diagonal)
+    // Captures (WICHTIG: mask VOR dem Shift, sonst filterst du legitime Ziel-Felder weg)
     uint64_t enemyPieces = (side == WHITE) ? board.occupied[BLACK] : board.occupied[WHITE];
 
     uint64_t leftCaptures = (side == WHITE)
-                                ? (pawns << 7) & enemyPieces & ~FILE_A
-                                : (pawns >> 9) & enemyPieces & ~FILE_H;
+                                ? ((pawns & ~FILE_A) << 7) & enemyPieces   // von nicht-a nach links
+                                : ((pawns & ~FILE_H) >> 9) & enemyPieces;  // von nicht-h nach links (aus Black-Sicht)
 
     temp = leftCaptures;
     while (temp) {
@@ -109,7 +108,7 @@ std::vector<Move> generatePawnMoves(const Board &board, Color side) {
 
         const bool isPromotion = ((1ULL << to) & promoRank) != 0;
         if (isPromotion) {
-            pushPromotionMoves(from, to, /*isCapture*/true);
+            pushPromotionMoves(from, to, true);
         } else {
             Move m;
             m.from = from;
@@ -121,8 +120,8 @@ std::vector<Move> generatePawnMoves(const Board &board, Color side) {
     }
 
     uint64_t rightCaptures = (side == WHITE)
-                                 ? (pawns << 9) & enemyPieces & ~FILE_H
-                                 : (pawns >> 7) & enemyPieces & ~FILE_A;
+                                 ? ((pawns & ~FILE_H) << 9) & enemyPieces  // von nicht-h nach rechts
+                                 : ((pawns & ~FILE_A) >> 7) & enemyPieces; // von nicht-a nach rechts (aus Black-Sicht)
 
     temp = rightCaptures;
     while (temp) {
@@ -132,7 +131,7 @@ std::vector<Move> generatePawnMoves(const Board &board, Color side) {
 
         const bool isPromotion = ((1ULL << to) & promoRank) != 0;
         if (isPromotion) {
-            pushPromotionMoves(from, to, /*isCapture*/true);
+            pushPromotionMoves(from, to, true);
         } else {
             Move m;
             m.from = from;
@@ -143,13 +142,13 @@ std::vector<Move> generatePawnMoves(const Board &board, Color side) {
         }
     }
 
-    // En Passant (pseudo-legal)
+    // En Passant (auch hier: mask VOR dem Shift)
     if (board.enPassantTarget != 0ULL) {
         uint64_t ep = board.enPassantTarget;
 
         if (side == WHITE) {
-            uint64_t epLeft  = (pawns << 7) & ep & ~FILE_A;
-            uint64_t epRight = (pawns << 9) & ep & ~FILE_H;
+            uint64_t epLeft  = ((pawns & ~FILE_A) << 7) & ep;
+            uint64_t epRight = ((pawns & ~FILE_H) << 9) & ep;
 
             uint64_t t = epLeft;
             while (t) {
@@ -181,8 +180,8 @@ std::vector<Move> generatePawnMoves(const Board &board, Color side) {
                 moves.push_back(m);
             }
         } else {
-            uint64_t epLeft  = (pawns >> 9) & ep & ~FILE_H;
-            uint64_t epRight = (pawns >> 7) & ep & ~FILE_A;
+            uint64_t epLeft  = ((pawns & ~FILE_H) >> 9) & ep;
+            uint64_t epRight = ((pawns & ~FILE_A) >> 7) & ep;
 
             uint64_t t = epLeft;
             while (t) {
