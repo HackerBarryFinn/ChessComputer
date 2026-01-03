@@ -648,11 +648,6 @@ int main() {
     // Brett: nur Könige + weiße Türme auf a1/h1, schwarzer König auf e8
     // Felder zwischen König und Türmen sind frei, keine Angriffe auf e1/f1/g1 oder e1/d1/c1.
     // Erwartung: legal moves = 26
-    // Erklärung:
-    // - Weißer König e1: 5 normale Züge (d1,f1,d2,e2,f2)
-    // - Weißer Turm a1: 10 Züge (a2..a8 + b1..d1)  [e1 ist besetzt -> stop]
-    // - Weißer Turm h1: 9 Züge (h2..h8 + g1..f1)   [e1 ist besetzt -> stop]
-    // - + 2 Rochaden (e1g1, e1c1)
     runLegalTest(
         "Castling: white can castle both sides",
         "4k3/8/8/8/8/8/8/R3K2R w KQ - 0 1",
