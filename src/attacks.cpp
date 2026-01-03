@@ -38,10 +38,10 @@ static uint64_t knightAttackMask(int sq) {
     constexpr uint64_t FILE_G = 0x4040404040404040ULL;
     constexpr uint64_t FILE_H = 0x8080808080808080ULL;
 
-    const uint64_t NOT_FILE_A  = ~FILE_A;
-    const uint64_t NOT_FILE_H  = ~FILE_H;
-    const uint64_t NOT_FILE_AB = ~(FILE_A | FILE_B);
-    const uint64_t NOT_FILE_GH = ~(FILE_G | FILE_H);
+    constexpr uint64_t NOT_FILE_A  = ~FILE_A;
+    constexpr uint64_t NOT_FILE_H  = ~FILE_H;
+    constexpr uint64_t NOT_FILE_AB = ~(FILE_A | FILE_B);
+    constexpr uint64_t NOT_FILE_GH = ~(FILE_G | FILE_H);
 
     uint64_t b = sqBB(sq);
     uint64_t attacks = 0ULL;

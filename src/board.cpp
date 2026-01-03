@@ -49,7 +49,7 @@ void printBoard(const Board &board) {
             for (int color = WHITE; color <= BLACK; ++color) {
                 for (int pt = PAWN; pt <= KING; ++pt) {
                     if ((board.bitboards[color][pt] >> square) & 1ULL) {
-                        static const char symbols[2][6] = {
+                        static constexpr char symbols[2][6] = {
                             {'P', 'N', 'B', 'R', 'Q', 'K'},
                             {'p', 'n', 'b', 'r', 'q', 'k'}
                         };

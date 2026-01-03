@@ -23,4 +23,12 @@ add_executable(ChessComputer src/main.cpp
         include/figures/knights.h
         include/figures/pawns.h
         include/figures/sliding.h
+        include/perft.h
+        src/perft.cpp
+        include/eval.h
+        include/search.h
+        src/eval.cpp
+        src/search.cpp
+        include/tt.h
+        src/tt.cpp
 )
