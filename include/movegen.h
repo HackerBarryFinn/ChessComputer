@@ -1,6 +1,5 @@
 #pragma once
 #include "board.h"
-#include <cstdint>
 #include <vector>
 
 enum MoveFlags : uint8_t {
@@ -25,7 +24,8 @@ struct Move {
     uint8_t flags = QUIET;
 };
 
-std::vector<Move> generatePawnMoves(const Board &board, Color side);
-
-// zentraler Einstiegspunkt für später (Search/Perft/Legal-Filter)
+// pseudo-legal (ohne "König darf nicht im Schach stehen")
 std::vector<Move> generatePseudoLegalMoves(const Board &board, Color side);
+
+// legal (filtert pseudo-legal anhand König-im-Schach-Prüfung)
+std::vector<Move> generateLegalMoves(Board &board, Color side);
