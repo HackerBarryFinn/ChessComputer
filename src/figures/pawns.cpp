@@ -97,8 +97,14 @@ std::vector<Move> generatePawnMoves(const Board &board, Color side) {
     uint64_t enemyPieces = (side == WHITE) ? board.occupied[BLACK] : board.occupied[WHITE];
 
     uint64_t leftCaptures = (side == WHITE)
-                                ? ((pawns & ~FILE_A) << 7) & enemyPieces   // von nicht-a nach links
-                                : ((pawns & ~FILE_H) >> 9) & enemyPieces;  // von nicht-h nach links (aus Black-Sicht)
+                                ? ((pawns & ~FILE_A) << 7) & enemyPieces   // white: up-left => mask FILE_A
+                                : ((pawns & ~FILE_A) >> 9) & enemyPieces;  // black: down-left => mask FILE_A
+
+    // ...
+
+    uint64_t rightCaptures = (side == WHITE)
+                                 ? ((pawns & ~FILE_H) << 9) & enemyPieces  // white: up-right => mask FILE_H
+                                 : ((pawns & ~FILE_H) >> 7) & enemyPieces; // black: down-right => mask FILE_H
 
     temp = leftCaptures;
     while (temp) {
@@ -118,10 +124,6 @@ std::vector<Move> generatePawnMoves(const Board &board, Color side) {
             moves.push_back(m);
         }
     }
-
-    uint64_t rightCaptures = (side == WHITE)
-                                 ? ((pawns & ~FILE_H) << 9) & enemyPieces  // von nicht-h nach rechts
-                                 : ((pawns & ~FILE_A) >> 7) & enemyPieces; // von nicht-a nach rechts (aus Black-Sicht)
 
     temp = rightCaptures;
     while (temp) {
@@ -180,8 +182,8 @@ std::vector<Move> generatePawnMoves(const Board &board, Color side) {
                 moves.push_back(m);
             }
         } else {
-            uint64_t epLeft  = ((pawns & ~FILE_H) >> 9) & ep;
-            uint64_t epRight = ((pawns & ~FILE_A) >> 7) & ep;
+            uint64_t epLeft  = ((pawns & ~FILE_A) >> 9) & ep;
+            uint64_t epRight = ((pawns & ~FILE_H) >> 7) & ep;
 
             uint64_t t = epLeft;
             while (t) {

@@ -80,18 +80,40 @@ bool makeMove(Board& board, const Move& move, UndoState& undo) {
         return false;
     }
 
-    // Standard: en-passant Target wird nach jedem Zug gelöscht,
+    // Merken, was vor dem Zug gültig war (EP muss gegen den "alten" Zustand geprüft werden)
+    const uint64_t oldEpTarget = board.enPassantTarget;
+
+    // Standard: EP-Target wird nach jedem Zug gelöscht,
     // nur bei Pawn DOUBLE_PUSH neu gesetzt.
     board.enPassantTarget = 0ULL;
 
     // 1) Captures (inkl. EP)
     if (move.flags & EN_PASSANT) {
-        if (move.moved != PAWN) return false;
+        // EP ist nur für Bauern, und darf nicht mit anderen Sonderflags kombiniert werden
+        if (move.moved != PAWN) { board.enPassantTarget = oldEpTarget; return false; }
+        if (move.flags & (DOUBLE_PUSH | PROMOTION | CASTLING)) { board.enPassantTarget = oldEpTarget; return false; }
 
+        // EP muss auf das EP-Target-Feld gehen (aus dem Zustand VOR dem Zug)
+        if (oldEpTarget == 0ULL) { board.enPassantTarget = oldEpTarget; return false; }
+        if (oldEpTarget != toBB) { board.enPassantTarget = oldEpTarget; return false; }
+
+        // Zielfeld muss leer sein (EP schlägt nicht die Figur auf "to", sondern daneben)
+        if (board.allOccupied & toBB) { board.enPassantTarget = oldEpTarget; return false; }
+
+        // Bewegung muss diagonal sein
+        int delta = move.to - move.from;
+        if (side == WHITE) {
+            if (!(delta == 7 || delta == 9)) { board.enPassantTarget = oldEpTarget; return false; }
+        } else {
+            if (!(delta == -7 || delta == -9)) { board.enPassantTarget = oldEpTarget; return false; }
+        }
+
+        // geschlagener Bauer steht "hinter" dem Ziel
         int capSq = (side == WHITE) ? (move.to - 8) : (move.to + 8);
         uint64_t capBB = sqBB(capSq);
 
         if ((board.bitboards[enemy][PAWN] & capBB) == 0ULL) {
+            board.enPassantTarget = oldEpTarget;
             return false;
         }
 
@@ -123,13 +145,22 @@ bool makeMove(Board& board, const Move& move, UndoState& undo) {
         // Wir erwarten: moved == KING
         if (move.moved != KING) return false;
 
+        // Zusätzliche Robustheits-Checks:
+        // - Turm muss wirklich auf dem Startfeld stehen
+        // - Zwischenfelder müssen frei sein (entspricht den Regeln + schützt Perft gegen falsche Gen)
         if (side == WHITE) {
             if (move.from == 4 && move.to == 6) {
-                // e1->g1: rook h1->f1
+                // e1->g1: rook h1->f1, Felder f1/g1 müssen frei sein
+                if ((board.bitboards[WHITE][ROOK] & sqBB(7)) == 0ULL) return false;
+                if (board.allOccupied & (sqBB(5) | sqBB(6))) return false;
+
                 board.bitboards[WHITE][ROOK] &= ~sqBB(7);
                 board.bitboards[WHITE][ROOK] |=  sqBB(5);
             } else if (move.from == 4 && move.to == 2) {
-                // e1->c1: rook a1->d1
+                // e1->c1: rook a1->d1, Felder b1/c1/d1 müssen frei sein
+                if ((board.bitboards[WHITE][ROOK] & sqBB(0)) == 0ULL) return false;
+                if (board.allOccupied & (sqBB(1) | sqBB(2) | sqBB(3))) return false;
+
                 board.bitboards[WHITE][ROOK] &= ~sqBB(0);
                 board.bitboards[WHITE][ROOK] |=  sqBB(3);
             } else {
@@ -137,11 +168,17 @@ bool makeMove(Board& board, const Move& move, UndoState& undo) {
             }
         } else {
             if (move.from == 60 && move.to == 62) {
-                // e8->g8: rook h8->f8
+                // e8->g8: rook h8->f8, Felder f8/g8 müssen frei sein
+                if ((board.bitboards[BLACK][ROOK] & sqBB(63)) == 0ULL) return false;
+                if (board.allOccupied & (sqBB(61) | sqBB(62))) return false;
+
                 board.bitboards[BLACK][ROOK] &= ~sqBB(63);
                 board.bitboards[BLACK][ROOK] |=  sqBB(61);
             } else if (move.from == 60 && move.to == 58) {
-                // e8->c8: rook a8->d8
+                // e8->c8: rook a8->d8, Felder b8/c8/d8 müssen frei sein
+                if ((board.bitboards[BLACK][ROOK] & sqBB(56)) == 0ULL) return false;
+                if (board.allOccupied & (sqBB(57) | sqBB(58) | sqBB(59))) return false;
+
                 board.bitboards[BLACK][ROOK] &= ~sqBB(56);
                 board.bitboards[BLACK][ROOK] |=  sqBB(59);
             } else {
@@ -151,9 +188,28 @@ bool makeMove(Board& board, const Move& move, UndoState& undo) {
     }
 
     // 3) Pawn Double Push -> enPassantTarget setzen
-    if (move.moved == PAWN && (move.flags & DOUBLE_PUSH)) {
-        int epSq = (side == WHITE) ? (move.from + 8) : (move.from - 8);
-        board.enPassantTarget = sqBB(epSq);
+    if (move.flags & DOUBLE_PUSH) {
+        if (move.moved != PAWN) return false;
+        if (move.flags & (CAPTURE | EN_PASSANT | PROMOTION | CASTLING)) return false;
+
+        int delta = move.to - move.from;
+        int fromRank = move.from / 8;
+
+        // Startreihe + Delta prüfen
+        if (side == WHITE) {
+            if (fromRank != 1) return false;
+            if (delta != 16) return false;
+        } else {
+            if (fromRank != 6) return false;
+            if (delta != -16) return false;
+        }
+
+        // Zwischenfeld + Zielfeld müssen frei sein
+        int midSq = (side == WHITE) ? (move.from + 8) : (move.from - 8);
+        if (board.allOccupied & (sqBB(midSq) | sqBB(move.to))) return false;
+
+        // EP-Target korrekt setzen
+        board.enPassantTarget = sqBB(midSq);
     }
 
     // 4) Castling rights updaten (King/Rook move + evtl. rook capture)
