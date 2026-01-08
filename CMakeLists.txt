@@ -11,10 +11,10 @@ add_library(chess
         src/chess/core/board.cpp
         src/chess/core/movegen.cpp
 
-        src/chess/figures/pawns.cpp
-        src/chess/figures/knights.cpp
-        src/chess/figures/sliding.cpp
-        src/chess/figures/king.cpp
+        src/chess/pieces/pawns.cpp
+        src/chess/pieces/knights.cpp
+        src/chess/pieces/sliding.cpp
+        src/chess/pieces/king.cpp
 
         src/chess/rules/attacks.cpp
         src/chess/rules/fen.cpp
