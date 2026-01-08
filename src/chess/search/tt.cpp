@@ -1,4 +1,4 @@
-#include "../include/tt.h"
+#include "chess/search/tt.h"
 #include <random>
 #include <bit>
 

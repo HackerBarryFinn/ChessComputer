@@ -1,6 +1,6 @@
-#include "../include/perft.h"
-#include "../include/movegen.h"
-#include "../include/makemove.h"
+#include "chess/rules/perft.h"
+#include "chess/core/movegen.h"
+#include "chess/rules/makemove.h"
 
 uint64_t perft(Board& board, int depth, MoveList* moveStack, int ply) {
     if (depth <= 0) return 1ULL;

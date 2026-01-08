@@ -1,4 +1,4 @@
-#include "../include/eval.h"
+#include "chess/search/eval.h"
 #include <bit>
 
 static int mirrorSquare(int sq) {

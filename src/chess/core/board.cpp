@@ -1,4 +1,4 @@
-#include "../include/board.h"
+#include "chess/core/board.h"
 #include <iostream>
 
 void initBitboards(Board &board) {

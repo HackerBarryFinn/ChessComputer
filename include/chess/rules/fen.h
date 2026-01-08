@@ -1,5 +1,5 @@
 #pragma once
-#include "board.h"
+#include "../core/board.h"
 #include <string>
 
 // Lädt eine Stellung aus FEN in 'board'.

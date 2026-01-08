@@ -1,8 +1,12 @@
-#include "../include/attacks.h"
+#include "chess/rules/attacks.h"
 #include <cstdint>
 
 static inline uint64_t sqBB(int sq) { return 1ULL << sq; }
 static inline bool inBoard(int r, int f) { return r >= 0 && r < 8 && f >= 0 && f < 8; }
+
+int findKingSquare(const Board& board, Color side) {
+    return board.kingSq[side];
+}
 
 static uint64_t pawnAttackMask(Color byColor, uint64_t pawns) {
     constexpr uint64_t FILE_A = 0x0101010101010101ULL;

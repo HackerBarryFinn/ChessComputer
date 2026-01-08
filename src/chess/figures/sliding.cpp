@@ -1,4 +1,4 @@
-#include "../../include/figures/sliding.h"
+#include "chess/figures/sliding.h"
 
 static inline uint64_t sqBB(int sq) { return 1ULL << sq; }
 

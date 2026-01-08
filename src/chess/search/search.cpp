@@ -1,11 +1,11 @@
-#include "../include/search.h"
+#include "chess/search/search.h"
 
-#include "../include/movegen.h"
-#include "../include/makemove.h"
-#include "../include/eval.h"
-#include "../include/attacks.h"
-#include "../include/utils.h"
-#include "../include/tt.h"
+#include "chess/core/movegen.h"
+#include "chess/rules/makemove.h"
+#include "chess/search/eval.h"
+#include "chess/rules/attacks.h"
+#include "../../../include/app/utils.h"
+#include "chess/search/tt.h"
 
 #include <algorithm>
 #include <iostream>

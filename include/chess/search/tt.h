@@ -1,8 +1,8 @@
 #pragma once
 
 #include <vector>
-#include "movegen.h"
-#include "board.h"
+#include "../core/movegen.h"
+#include "../core/board.h"
 
 enum class TTFlag : uint8_t { EXACT = 0, LOWERBOUND = 1, UPPERBOUND = 2 };
 

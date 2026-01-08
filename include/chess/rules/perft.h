@@ -1,7 +1,7 @@
 #pragma once
 #include <cstdint>
-#include "board.h"
-#include "movegen.h"
+#include "../core/board.h"
+#include "../core/movegen.h"
 
 // Bestehende API
 uint64_t perft(Board& board, int depth);

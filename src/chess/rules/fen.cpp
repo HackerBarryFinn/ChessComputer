@@ -1,4 +1,4 @@
-#include "../include/fen.h"
+#include "chess/rules/fen.h"
 #include <cctype>
 #include <sstream>
 

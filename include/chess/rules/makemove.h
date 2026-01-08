@@ -1,6 +1,6 @@
 #pragma once
-#include "board.h"
-#include "movegen.h"
+#include "../core/board.h"
+#include "../core/movegen.h"
 
 struct UndoState {
     Color previousSideToMove;

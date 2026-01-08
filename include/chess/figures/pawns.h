@@ -1,7 +1,7 @@
 #pragma once
 
-#include "../board.h"
-#include "../movegen.h"
+#include "chess/core/board.h"
+#include "chess/core/movegen.h"
 #include <vector>
 
 void generatePawnMoves(const Board& board, Color side, MoveList& out);

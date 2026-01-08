@@ -1,6 +1,6 @@
 #pragma once
-#include "board.h"
-#include "movegen.h"
+#include "../core/board.h"
+#include "../core/movegen.h"
 
 // Liefert den besten gefundenen Zug für 'board.sideToMove' bei gegebener Tiefe.
 Move findBestMove(Board& board, int depth);

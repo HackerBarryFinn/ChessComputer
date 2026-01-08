@@ -1,4 +1,4 @@
-#include "../include/makemove.h"
+#include "chess/rules/makemove.h"
 
 static inline uint64_t sqBB(int sq) { return 1ULL << sq; }
 

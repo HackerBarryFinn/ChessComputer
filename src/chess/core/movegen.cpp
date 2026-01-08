@@ -1,12 +1,12 @@
-#include "../include/movegen.h"
+#include "chess/core/movegen.h"
 
-#include "../include/figures/pawns.h"
-#include "../include/figures/knights.h"
-#include "../include/figures/king.h"
-#include "../include/figures/sliding.h"
+#include "chess/figures/pawns.h"
+#include "chess/figures/knights.h"
+#include "chess/figures/king.h"
+#include "chess/figures/sliding.h"
 
-#include "../include/makemove.h"
-#include "../include/attacks.h"
+#include "chess/rules/makemove.h"
+#include "chess/rules/attacks.h"
 
 void generatePseudoLegalMoves(const Board &board, Color side, MoveList& out) {
     out.clear();
