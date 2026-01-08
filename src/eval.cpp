@@ -29,11 +29,10 @@ static int evalPstBlack(uint64_t bb, const int pst[64]) {
 }
 
 int evaluate(const Board& board) {
-    // Materialwerte (Centipawns)
+    // Materialwerte
     constexpr int V[6] = {100, 320, 330, 500, 900, 0};
 
-    // PSTs: bewusst simpel gehalten.
-    // Idee:
+    // PSTs:
     // - Knights/Bishops: zentral + aktiv = gut
     // - Rooks: 7. Reihe leicht bevorzugt (in der Praxis wichtig), sonst neutral
     // - Queen: leicht zentral, aber nicht zu stark (sonst frühe Queen-Ausflüge)

@@ -2,9 +2,6 @@
 
 static inline uint64_t sqBB(int sq) { return 1ULL << sq; }
 
-// recomputeOccupancy wird nicht mehr benötigt (kann später gelöscht werden)
-// static void recomputeOccupancy(Board& b) { ... }
-
 static int findPieceOnSquare(const Board& b, Color c, int square) {
     uint64_t mask = sqBB(square);
     for (int pt = PAWN; pt <= KING; ++pt) {
@@ -79,14 +76,13 @@ bool makeMove(Board& board, const Move& move, UndoState& undo) {
         return false;
     }
 
-    // Merken, was vor dem Zug gültig war (EP muss gegen den "alten" Zustand geprüft werden)
+    // Merken, was vor dem Zug gültig war (EP muss gegen den alten Zustand geprüft werden)
     const uint64_t oldEpTarget = board.enPassantTarget;
 
-    // Wichtig: Viele eurer Validierungen prüfen absichtlich gegen den "alten" Zustand.
+    // Wichtig: Viele Validierungen prüfen absichtlich gegen den alten Zustand.
     const uint64_t oldAllOccupied = board.allOccupied;
 
-    // Standard: EP-Target wird nach jedem Zug gelöscht,
-    // nur bei Pawn DOUBLE_PUSH neu gesetzt.
+    // EP-Target wird nach jedem Zug gelöscht, nur bei Pawn DOUBLE_PUSH neu gesetzt.
     board.enPassantTarget = 0ULL;
 
     // 1) Captures (inkl. EP)
@@ -116,7 +112,7 @@ bool makeMove(Board& board, const Move& move, UndoState& undo) {
         }
 
         board.bitboards[enemy][PAWN] &= ~capBB;
-        // Neu: Occupancy inkrementell
+        // Occupancy inkrementell
         board.occupied[enemy] &= ~capBB;
 
         undo.capturedPiece = PAWN;
@@ -127,7 +123,7 @@ bool makeMove(Board& board, const Move& move, UndoState& undo) {
             return false;
         }
         board.bitboards[enemy][captured] &= ~toBB;
-        // Neu: Occupancy inkrementell
+        // Occupancy inkrementell
         board.occupied[enemy] &= ~toBB;
 
         undo.capturedPiece = captured;
@@ -149,7 +145,7 @@ bool makeMove(Board& board, const Move& move, UndoState& undo) {
     }
 
     if (move.moved == KING) {
-        // robuster als board.sideToMove (hier garantiert die ziehende Farbe)
+        // robuster als board.sideToMove - garantiert die ziehende Farbe
         board.kingSq[side] = move.to;
     }
 
@@ -165,7 +161,7 @@ bool makeMove(Board& board, const Move& move, UndoState& undo) {
                 board.bitboards[WHITE][ROOK] &= ~sqBB(7);
                 board.bitboards[WHITE][ROOK] |=  sqBB(5);
 
-                // Neu: Occupancy Turm inkrementell
+                // Occupancy Turm inkrementell
                 board.occupied[WHITE] &= ~sqBB(7);
                 board.occupied[WHITE] |=  sqBB(5);
             } else if (move.from == 4 && move.to == 2) {
@@ -237,14 +233,14 @@ bool makeMove(Board& board, const Move& move, UndoState& undo) {
 
     board.sideToMove = enemy;
 
-    // Neu: allOccupied billig neu setzen (nur OR der beiden Farben)
+    // allOccupied billig neu setzen (nur OR der beiden Farben)
     board.allOccupied = board.occupied[WHITE] | board.occupied[BLACK];
 
     return true;
 }
 
 void unmakeMove(Board& board, const Move& move, const UndoState& undo) {
-    (void)move; // move wird weiterhin benutzt, aber falls dein Compiler warnt, kann das weg
+    (void)move;
 
     board.kingSq[WHITE] = undo.prevKingSq[WHITE];
     board.kingSq[BLACK] = undo.prevKingSq[BLACK];
@@ -257,10 +253,8 @@ void unmakeMove(Board& board, const Move& move, const UndoState& undo) {
     board.blackKingsideCastle = undo.prevBlackKingsideCastle;
     board.blackQueensideCastle = undo.prevBlackQueensideCastle;
 
-    // Bitboards wie bisher zurückbauen (dein bestehender Code bleibt),
+    // Bitboards wie bisher zurückbauen
     // ABER: Occupancy nicht mehr recompute'n, sondern direkt wiederherstellen:
-    // (Wir stellen das absichtlich am Ende wieder her, damit Bitboards-Undo-Code unverändert bleiben kann.)
-
     Color side = board.sideToMove;
     Color enemy = (side == WHITE) ? BLACK : WHITE;
 
@@ -301,7 +295,7 @@ void unmakeMove(Board& board, const Move& move, const UndoState& undo) {
         board.bitboards[enemy][undo.capturedPiece] |= sqBB(undo.capturedSquare);
     }
 
-    // Neu: Occupancy/AllOccupied exakt wiederherstellen (kein recompute)
+    // Occupancy/AllOccupied exakt wiederherstellen (kein recompute)
     board.occupied[WHITE] = undo.prevOccupied[WHITE];
     board.occupied[BLACK] = undo.prevOccupied[BLACK];
     board.allOccupied = undo.prevAllOccupied;

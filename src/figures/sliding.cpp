@@ -41,15 +41,6 @@ static void addRayMoves(MoveList& out,
     }
 }
 
-static void forEachSquare(uint64_t bb, void(*fn)(int sq, void* ctx), void* ctx) {
-    while (bb) {
-        int sq = 0;
-        while (((bb >> sq) & 1ULL) == 0ULL) ++sq;
-        fn(sq, ctx);
-        bb &= (bb - 1);
-    }
-}
-
 void generateBishopMoves(const Board& board, Color side, MoveList& out) {
     uint64_t bb = board.bitboards[side][BISHOP];
     while (bb) {

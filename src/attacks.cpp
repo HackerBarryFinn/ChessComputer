@@ -4,11 +4,6 @@
 static inline uint64_t sqBB(int sq) { return 1ULL << sq; }
 static inline bool inBoard(int r, int f) { return r >= 0 && r < 8 && f >= 0 && f < 8; }
 
-// Optional: findKingSquare kann bleiben (Debug), wird aber nicht mehr von isSquareAttacked genutzt.
-int findKingSquare(const Board& board, Color side) {
-    return board.kingSq[side];
-}
-
 static uint64_t pawnAttackMask(Color byColor, uint64_t pawns) {
     constexpr uint64_t FILE_A = 0x0101010101010101ULL;
     constexpr uint64_t FILE_H = 0x8080808080808080ULL;
@@ -107,7 +102,6 @@ bool isSquareAttacked(const Board& board, int square, Color byColor) {
     if (pawnAttackMask(byColor, board.bitboards[byColor][PAWN]) & target) return true;
     if (knightAttackMask(square) & board.bitboards[byColor][KNIGHT]) return true;
 
-    // Neu: King adjacency ohne findKingSquare-Scan
     const int ksq = board.kingSq[byColor];
     if (ksq != -1 && (kingAttackMask(ksq) & target)) return true;
 

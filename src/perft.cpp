@@ -28,7 +28,6 @@ uint64_t perft(Board& board, int depth, MoveList* moveStack, int ply) {
 // Bestehende API bleibt: erzeugt nur einmal den Stack und ruft die schnelle Variante
 uint64_t perft(Board& board, int depth) {
     // depth 10 => ply 0..10, also 11 Einträge reichen
-    // etwas Puffer schadet nicht
     constexpr int MAX_PLY = 64;
     MoveList moveStack[MAX_PLY];
 

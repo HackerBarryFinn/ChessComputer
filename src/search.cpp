@@ -159,7 +159,6 @@ static int quiescence(Board& board, int alpha, int beta) {
 }
 
 static int scoreRootMove(Board& board, const Move& m, int depth) {
-    // Root-Suche nutzt das gleiche negamax (inkl. TT)
     UndoState u{};
     if (!makeMove(board, m, u)) return std::numeric_limits<int>::min();
 
@@ -226,7 +225,7 @@ void printTopMoves(Board& board, int depth, int topN) {
 }
 
 Move findBestMoveIterative(Board& board, int maxDepth) {
-    // Für Iterative Deepening: TT NICHT leeren (genau das ist der Vorteil).
+    // Für Iterative Deepening: TT NICHT leeren
     Move best{};
     int bestScore = std::numeric_limits<int>::min();
 
