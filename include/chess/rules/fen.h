@@ -1,5 +1,5 @@
 #pragma once
-#include "../core/board.h"
+#include "chess/core/board.h"
 #include <string>
 
 // Lädt eine Stellung aus FEN in 'board'.

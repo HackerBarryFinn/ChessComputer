@@ -1,42 +1,49 @@
-cmake_minimum_required(VERSION 3.31)
-project(ChessComputer)
+cmake_minimum_required(VERSION 3.20)
+
+project(ChessComputer LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-add_executable(ChessComputer app/main.cpp
-        include/chess/core/board.h
+# --- Chess-Library (Engine/Logik) ---
+add_library(chess
         src/chess/core/board.cpp
         src/chess/core/movegen.cpp
-        include/chess/core/movegen.h
-        include/app/utils.h
+
         src/chess/figures/pawns.cpp
         src/chess/figures/knights.cpp
         src/chess/figures/sliding.cpp
         src/chess/figures/king.cpp
+
         src/chess/rules/attacks.cpp
-        include/chess/rules/attacks.h
         src/chess/rules/fen.cpp
-        include/chess/rules/fen.h
         src/chess/rules/makemove.cpp
-        include/chess/rules/makemove.h
-        include/chess/figures/king.h
-        include/chess/figures/knights.h
-        include/chess/figures/pawns.h
-        include/chess/figures/sliding.h
-        include/chess/rules/perft.h
         src/chess/rules/perft.cpp
-        include/chess/search/eval.h
-        include/chess/search/search.h
+
         src/chess/search/eval.cpp
         src/chess/search/search.cpp
-        include/chess/search/tt.h
         src/chess/search/tt.cpp
-        include/app/test_runner.h
-        app/test_runner.cpp
 )
 
-target_include_directories(ChessComputer PRIVATE
+target_include_directories(chess
+        PUBLIC
         ${CMAKE_SOURCE_DIR}/include
 )
+
+# --- App/Tests Executable ---
+add_executable(ChessComputer
+        app/main.cpp
+        tests/test_runner.cpp
+)
+
+target_link_libraries(ChessComputer PRIVATE chess)
+
+# Optional: Warnungen (Compiler-abhängig)
+if (MSVC)
+    target_compile_options(chess PRIVATE /W4)
+    target_compile_options(ChessComputer PRIVATE /W4)
+else()
+    target_compile_options(chess PRIVATE -Wall -Wextra -Wpedantic)
+    target_compile_options(ChessComputer PRIVATE -Wall -Wextra -Wpedantic)
+endif()

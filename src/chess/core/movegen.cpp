@@ -1,9 +1,9 @@
 #include "chess/core/movegen.h"
 
-#include "chess/figures/pawns.h"
-#include "chess/figures/knights.h"
-#include "chess/figures/king.h"
-#include "chess/figures/sliding.h"
+#include "chess/pieces/pawns.h"
+#include "chess/pieces/knights.h"
+#include "chess/pieces/king.h"
+#include "chess/pieces/sliding.h"
 
 #include "chess/rules/makemove.h"
 #include "chess/rules/attacks.h"

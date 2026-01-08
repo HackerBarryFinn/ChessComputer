@@ -1,5 +1,5 @@
-#include "chess/figures/knights.h"
-#include "../../../include/app/utils.h"
+#include "chess/pieces/knights.h"
+#include "../../../include/chess/core/utils.h"
 
 static inline uint64_t sqBB(int sq) { return 1ULL << sq; }
 

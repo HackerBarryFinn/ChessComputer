@@ -1,4 +1,4 @@
-#include "app/test_runner.h"
+#include "test_runner.h"
 
 #include "chess/core/board.h"
 #include "chess/core/movegen.h"
@@ -7,8 +7,8 @@
 #include "chess/rules/perft.h"
 #include "chess/search/search.h"
 #include "chess/search/tt.h"
-#include "chess/figures/knights.h"
-#include "chess/figures/sliding.h"
+#include "chess/pieces/knights.h"
+#include "chess/pieces/sliding.h"
 
 #include <iostream>
 #include <string>

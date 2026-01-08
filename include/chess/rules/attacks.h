@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../core/board.h"
+#include "chess/core/board.h"
 
 // Gibt das Square (0..63) des Königs der Farbe zurück, oder -1 wenn nicht vorhanden.
 int findKingSquare(const Board& board, Color side);

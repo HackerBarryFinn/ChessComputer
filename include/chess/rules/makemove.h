@@ -1,6 +1,6 @@
 #pragma once
-#include "../core/board.h"
-#include "../core/movegen.h"
+#include "chess/core/board.h"
+#include "chess/core/movegen.h"
 
 struct UndoState {
     Color previousSideToMove;
