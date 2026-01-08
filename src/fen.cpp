@@ -10,6 +10,10 @@ static void clearBoard(Board& b) {
     b.occupied[BLACK] = 0ULL;
     b.allOccupied = 0ULL;
 
+    // Neu
+    b.kingSq[WHITE] = -1;
+    b.kingSq[BLACK] = -1;
+
     b.sideToMove = WHITE;
     b.enPassantTarget = 0ULL;
     b.whiteKingsideCastle = false;
@@ -44,6 +48,12 @@ static bool setPiece(Board& b, char c, int square) {
     }
 
     b.bitboards[col][pt] |= (1ULL << square);
+
+    // Neu: Königssquare direkt setzen
+    if (pt == KING) {
+        b.kingSq[col] = square;
+    }
+
     return true;
 }
 

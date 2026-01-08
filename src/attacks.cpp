@@ -4,15 +4,9 @@
 static inline uint64_t sqBB(int sq) { return 1ULL << sq; }
 static inline bool inBoard(int r, int f) { return r >= 0 && r < 8 && f >= 0 && f < 8; }
 
+// Optional: findKingSquare kann bleiben (Debug), wird aber nicht mehr von isSquareAttacked genutzt.
 int findKingSquare(const Board& board, Color side) {
-    uint64_t k = board.bitboards[side][KING];
-    if (k == 0ULL) return -1;
-
-    // Genau ein König: linearer Scan ist ok
-    for (int sq = 0; sq < 64; ++sq) {
-        if (k & sqBB(sq)) return sq;
-    }
-    return -1;
+    return board.kingSq[side];
 }
 
 static uint64_t pawnAttackMask(Color byColor, uint64_t pawns) {
@@ -20,12 +14,10 @@ static uint64_t pawnAttackMask(Color byColor, uint64_t pawns) {
     constexpr uint64_t FILE_H = 0x8080808080808080ULL;
 
     if (byColor == WHITE) {
-        // White pawns attack upwards (+7, +9)
         uint64_t left  = (pawns & ~FILE_A) << 7;
         uint64_t right = (pawns & ~FILE_H) << 9;
         return left | right;
     } else {
-        // Black pawns attack downwards (-7, -9)
         uint64_t left  = (pawns & ~FILE_H) >> 7;
         uint64_t right = (pawns & ~FILE_A) >> 9;
         return left | right;
@@ -93,7 +85,6 @@ static bool rayAttackedBy(const Board& board, int square, Color byColor, int dr,
             continue;
         }
 
-        // Erstes Piece auf dem Ray entscheidet
         if (board.occupied[byColor] & bb) {
             if (bishopLike) {
                 if ((board.bitboards[byColor][BISHOP] & bb) || (board.bitboards[byColor][QUEEN] & bb))
@@ -104,7 +95,7 @@ static bool rayAttackedBy(const Board& board, int square, Color byColor, int dr,
                     return true;
             }
         }
-        return false; // blockiert durch irgendein Piece
+        return false;
     }
 }
 
@@ -113,23 +104,18 @@ bool isSquareAttacked(const Board& board, int square, Color byColor) {
 
     const uint64_t target = sqBB(square);
 
-    // Pawns
     if (pawnAttackMask(byColor, board.bitboards[byColor][PAWN]) & target) return true;
-
-    // Knights
     if (knightAttackMask(square) & board.bitboards[byColor][KNIGHT]) return true;
 
-    // King adjacency
-    int ksq = findKingSquare(board, byColor);
+    // Neu: King adjacency ohne findKingSquare-Scan
+    const int ksq = board.kingSq[byColor];
     if (ksq != -1 && (kingAttackMask(ksq) & target)) return true;
 
-    // Diagonalen (Bishop/Queen)
     if (rayAttackedBy(board, square, byColor, +1, +1, true, false)) return true;
     if (rayAttackedBy(board, square, byColor, +1, -1, true, false)) return true;
     if (rayAttackedBy(board, square, byColor, -1, +1, true, false)) return true;
     if (rayAttackedBy(board, square, byColor, -1, -1, true, false)) return true;
 
-    // Geraden (Rook/Queen)
     if (rayAttackedBy(board, square, byColor, +1, 0, false, true)) return true;
     if (rayAttackedBy(board, square, byColor, -1, 0, false, true)) return true;
     if (rayAttackedBy(board, square, byColor, 0, +1, false, true)) return true;

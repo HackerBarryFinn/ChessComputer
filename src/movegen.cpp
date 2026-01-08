@@ -44,40 +44,35 @@ std::vector<Move> generateLegalMoves(Board &board, Color side) {
             continue;
         }
 
-        // König der ursprünglichen Seite darf nicht im Schach stehen
-        int kingSq = findKingSquare(board, side);
+        // Neu: cached king square statt findKingSquare()
+        int kingSq = board.kingSq[side];
         bool inCheck = (kingSq != -1) && isSquareAttacked(board, kingSq, enemy);
 
         unmakeMove(board, m, u);
 
         if (inCheck) continue;
 
-        // Zusätzliche Rochade-Regeln: König darf nicht im oder über Schach rochieren
         if (m.flags & CASTLING) {
-            // Startfeld ist immer e1/e8, Zwischenfeld f1/f8 oder d1/d8, Zielfeld g1/g8 oder c1/c8
             int e = (side == WHITE) ? 4  : 60;
-
-            // Wenn König gar nicht auf e1/e8 stand
             if (m.from != e) continue;
 
-            // König darf im Ausgangsfeld nicht im Schach sein
             if (isSquareAttacked(board, e, enemy)) continue;
 
             if (side == WHITE) {
-                if (m.to == 6) { // g1
-                    if (isSquareAttacked(board, 5, enemy)) continue; // f1
-                    if (isSquareAttacked(board, 6, enemy)) continue; // g1
-                } else if (m.to == 2) { // c1
-                    if (isSquareAttacked(board, 3, enemy)) continue; // d1
-                    if (isSquareAttacked(board, 2, enemy)) continue; // c1
+                if (m.to == 6) {
+                    if (isSquareAttacked(board, 5, enemy)) continue;
+                    if (isSquareAttacked(board, 6, enemy)) continue;
+                } else if (m.to == 2) {
+                    if (isSquareAttacked(board, 3, enemy)) continue;
+                    if (isSquareAttacked(board, 2, enemy)) continue;
                 } else continue;
             } else {
-                if (m.to == 62) { // g8
-                    if (isSquareAttacked(board, 61, enemy)) continue; // f8
-                    if (isSquareAttacked(board, 62, enemy)) continue; // g8
-                } else if (m.to == 58) { // c8
-                    if (isSquareAttacked(board, 59, enemy)) continue; // d8
-                    if (isSquareAttacked(board, 58, enemy)) continue; // c8
+                if (m.to == 62) {
+                    if (isSquareAttacked(board, 61, enemy)) continue;
+                    if (isSquareAttacked(board, 62, enemy)) continue;
+                } else if (m.to == 58) {
+                    if (isSquareAttacked(board, 59, enemy)) continue;
+                    if (isSquareAttacked(board, 58, enemy)) continue;
                 } else continue;
             }
         }

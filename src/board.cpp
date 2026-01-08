@@ -25,6 +25,10 @@ void initBitboards(Board &board) {
     }
 
     board.allOccupied = board.occupied[WHITE] | board.occupied[BLACK];
+
+    // Neu: Königssquares initialisieren (e1=4, e8=60)
+    board.kingSq[WHITE] = 4;
+    board.kingSq[BLACK] = 60;
 }
 
 void printBitboard(const uint64_t bitboard) {

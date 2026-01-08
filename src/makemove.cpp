@@ -70,6 +70,9 @@ bool makeMove(Board& board, const Move& move, UndoState& undo) {
     undo.capturedPiece = -1;
     undo.capturedSquare = -1;
 
+    undo.prevKingSq[WHITE] = board.kingSq[WHITE];
+    undo.prevKingSq[BLACK] = board.kingSq[BLACK];
+
     Color side = board.sideToMove;
     Color enemy = (side == WHITE) ? BLACK : WHITE;
 
@@ -138,6 +141,10 @@ bool makeMove(Board& board, const Move& move, UndoState& undo) {
         board.bitboards[side][static_cast<PieceType>(move.promotion)] |= toBB;
     } else {
         board.bitboards[side][move.moved] |= toBB;
+    }
+
+    if (move.moved == KING) {
+        board.kingSq[board.sideToMove] = move.to;
     }
 
     // 2b) Rochade: Turm mitziehen (King zieht bereits von->to)
@@ -224,6 +231,9 @@ bool makeMove(Board& board, const Move& move, UndoState& undo) {
 }
 
 void unmakeMove(Board& board, const Move& move, const UndoState& undo) {
+    board.kingSq[WHITE] = undo.prevKingSq[WHITE];
+    board.kingSq[BLACK] = undo.prevKingSq[BLACK];
+
     board.sideToMove = undo.previousSideToMove;
     board.enPassantTarget = undo.previousEnPassantTarget;
 
