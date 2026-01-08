@@ -1,8 +1,9 @@
 #include "../../include/figures/pawns.h"
 #include "../../include/utils.h"
 
-std::vector<Move> generatePawnMoves(const Board &board, Color side) {
-    std::vector<Move> moves;
+static inline uint64_t sqBB(int sq) { return 1ULL << sq; }
+
+void generatePawnMoves(const Board &board, Color side, MoveList& out) {
     uint64_t pawns = board.bitboards[side][PAWN];
 
     constexpr uint64_t FILE_A = 0x0101010101010101ULL;
@@ -23,13 +24,12 @@ std::vector<Move> generatePawnMoves(const Board &board, Color side) {
             m.moved = PAWN;
             m.promotion = static_cast<int>(p);
             m.flags = baseFlags;
-            moves.push_back(m);
+            out.push(m);
         }
     };
 
     int shift = (side == WHITE) ? 8 : -8;
 
-    // Einfache Vorwärtszüge
     uint64_t singlePushes = (side == WHITE)
                                 ? (pawns << 8) & ~board.allOccupied
                                 : (pawns >> 8) & ~board.allOccupied;
@@ -40,7 +40,7 @@ std::vector<Move> generatePawnMoves(const Board &board, Color side) {
         temp &= temp - 1;
         int from = to - shift;
 
-        const bool isPromotion = ((1ULL << to) & promoRank) != 0;
+        const bool isPromotion = (sqBB(to) & promoRank) != 0ULL;
 
         if (isPromotion) {
             pushPromotionMoves(from, to, false);
@@ -50,11 +50,10 @@ std::vector<Move> generatePawnMoves(const Board &board, Color side) {
             m.to = to;
             m.moved = PAWN;
             m.flags = QUIET;
-            moves.push_back(m);
+            out.push(m);
         }
     }
 
-    // Doppelzüge
     if (side == WHITE) {
         uint64_t rank2 = 0x000000000000FF00ULL;
         uint64_t doublePushes = ((pawns & rank2) << 16)
@@ -71,7 +70,7 @@ std::vector<Move> generatePawnMoves(const Board &board, Color side) {
             m.to = to;
             m.moved = PAWN;
             m.flags = DOUBLE_PUSH;
-            moves.push_back(m);
+            out.push(m);
         }
     } else {
         uint64_t rank7 = 0x00FF000000000000ULL;
@@ -89,22 +88,19 @@ std::vector<Move> generatePawnMoves(const Board &board, Color side) {
             m.to = to;
             m.moved = PAWN;
             m.flags = DOUBLE_PUSH;
-            moves.push_back(m);
+            out.push(m);
         }
     }
 
-    // Captures (WICHTIG: mask VOR dem Shift, sonst filterst du legitime Ziel-Felder weg)
     uint64_t enemyPieces = (side == WHITE) ? board.occupied[BLACK] : board.occupied[WHITE];
 
     uint64_t leftCaptures = (side == WHITE)
-                                ? ((pawns & ~FILE_A) << 7) & enemyPieces   // white: up-left => mask FILE_A
-                                : ((pawns & ~FILE_A) >> 9) & enemyPieces;  // black: down-left => mask FILE_A
-
-    // ...
+                                ? ((pawns & ~FILE_A) << 7) & enemyPieces
+                                : ((pawns & ~FILE_A) >> 9) & enemyPieces;
 
     uint64_t rightCaptures = (side == WHITE)
-                                 ? ((pawns & ~FILE_H) << 9) & enemyPieces  // white: up-right => mask FILE_H
-                                 : ((pawns & ~FILE_H) >> 7) & enemyPieces; // black: down-right => mask FILE_H
+                                 ? ((pawns & ~FILE_H) << 9) & enemyPieces
+                                 : ((pawns & ~FILE_H) >> 7) & enemyPieces;
 
     temp = leftCaptures;
     while (temp) {
@@ -112,7 +108,7 @@ std::vector<Move> generatePawnMoves(const Board &board, Color side) {
         temp &= temp - 1;
         int from = (side == WHITE) ? to - 7 : to + 9;
 
-        const bool isPromotion = ((1ULL << to) & promoRank) != 0;
+        const bool isPromotion = (sqBB(to) & promoRank) != 0ULL;
         if (isPromotion) {
             pushPromotionMoves(from, to, true);
         } else {
@@ -121,7 +117,7 @@ std::vector<Move> generatePawnMoves(const Board &board, Color side) {
             m.to = to;
             m.moved = PAWN;
             m.flags = CAPTURE;
-            moves.push_back(m);
+            out.push(m);
         }
     }
 
@@ -131,7 +127,7 @@ std::vector<Move> generatePawnMoves(const Board &board, Color side) {
         temp &= temp - 1;
         int from = (side == WHITE) ? to - 9 : to + 7;
 
-        const bool isPromotion = ((1ULL << to) & promoRank) != 0;
+        const bool isPromotion = (sqBB(to) & promoRank) != 0ULL;
         if (isPromotion) {
             pushPromotionMoves(from, to, true);
         } else {
@@ -140,11 +136,10 @@ std::vector<Move> generatePawnMoves(const Board &board, Color side) {
             m.to = to;
             m.moved = PAWN;
             m.flags = CAPTURE;
-            moves.push_back(m);
+            out.push(m);
         }
     }
 
-    // En Passant (auch hier: mask VOR dem Shift)
     if (board.enPassantTarget != 0ULL) {
         uint64_t ep = board.enPassantTarget;
 
@@ -164,7 +159,7 @@ std::vector<Move> generatePawnMoves(const Board &board, Color side) {
                 m.moved = PAWN;
                 m.captured = static_cast<int>(PAWN);
                 m.flags = static_cast<uint8_t>(CAPTURE | EN_PASSANT);
-                moves.push_back(m);
+                out.push(m);
             }
 
             t = epRight;
@@ -179,7 +174,7 @@ std::vector<Move> generatePawnMoves(const Board &board, Color side) {
                 m.moved = PAWN;
                 m.captured = static_cast<int>(PAWN);
                 m.flags = static_cast<uint8_t>(CAPTURE | EN_PASSANT);
-                moves.push_back(m);
+                out.push(m);
             }
         } else {
             uint64_t epLeft  = ((pawns & ~FILE_A) >> 9) & ep;
@@ -197,7 +192,7 @@ std::vector<Move> generatePawnMoves(const Board &board, Color side) {
                 m.moved = PAWN;
                 m.captured = static_cast<int>(PAWN);
                 m.flags = static_cast<uint8_t>(CAPTURE | EN_PASSANT);
-                moves.push_back(m);
+                out.push(m);
             }
 
             t = epRight;
@@ -212,10 +207,14 @@ std::vector<Move> generatePawnMoves(const Board &board, Color side) {
                 m.moved = PAWN;
                 m.captured = static_cast<int>(PAWN);
                 m.flags = static_cast<uint8_t>(CAPTURE | EN_PASSANT);
-                moves.push_back(m);
+                out.push(m);
             }
         }
     }
+}
 
-    return moves;
+std::vector<Move> generatePawnMoves(const Board& board, Color side) {
+    MoveList tmp;
+    generatePawnMoves(board, side, tmp);
+    return std::vector<Move>(tmp.data.begin(), tmp.data.begin() + tmp.size);
 }

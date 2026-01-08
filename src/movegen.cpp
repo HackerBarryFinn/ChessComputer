@@ -8,77 +8,82 @@
 #include "../include/makemove.h"
 #include "../include/attacks.h"
 
-std::vector<Move> generatePseudoLegalMoves(const Board &board, Color side) {
-    std::vector<Move> moves;
+void generatePseudoLegalMoves(const Board &board, Color side, MoveList& out) {
+    out.clear();
 
-    auto pawnMoves = generatePawnMoves(board, side);
-    moves.insert(moves.end(), pawnMoves.begin(), pawnMoves.end());
-
-    auto knightMoves = generateKnightMoves(board, side);
-    moves.insert(moves.end(), knightMoves.begin(), knightMoves.end());
-
-    auto bishopMoves = generateBishopMoves(board, side);
-    moves.insert(moves.end(), bishopMoves.begin(), bishopMoves.end());
-
-    auto rookMoves = generateRookMoves(board, side);
-    moves.insert(moves.end(), rookMoves.begin(), rookMoves.end());
-
-    auto queenMoves = generateQueenMoves(board, side);
-    moves.insert(moves.end(), queenMoves.begin(), queenMoves.end());
-
-    auto kingMoves = generateKingMoves(board, side);
-    moves.insert(moves.end(), kingMoves.begin(), kingMoves.end());
-
-    return moves;
+    generatePawnMoves(board, side, out);
+    generateKnightMoves(board, side, out);
+    generateBishopMoves(board, side, out);
+    generateRookMoves(board, side, out);
+    generateQueenMoves(board, side, out);
+    generateKingMoves(board, side, out);
 }
 
-std::vector<Move> generateLegalMoves(Board &board, Color side) {
-    std::vector<Move> legal;
-    auto pseudo = generatePseudoLegalMoves(board, side);
+void generateLegalMoves(Board &board, Color side, MoveList& out) {
+    // 1) pseudo-legal direkt in out erzeugen (kein zweiter Buffer)
+    generatePseudoLegalMoves(board, side, out);
 
     const Color enemy = (side == WHITE) ? BLACK : WHITE;
 
-    for (const auto& m : pseudo) {
-        UndoState u{};
-        if (!makeMove(board, m, u)) {
-            continue;
-        }
+    // 2) In-place filtern: read i, write w
+    int w = 0;
+    for (int i = 0; i < out.size; ++i) {
+        const Move m = out[i]; // Kopie ist ok (out wird überschrieben)
 
-        // Neu: cached king square statt findKingSquare()
-        int kingSq = board.kingSq[side];
-        bool inCheck = (kingSq != -1) && isSquareAttacked(board, kingSq, enemy);
+        UndoState u{};
+        if (!makeMove(board, m, u)) continue;
+
+        // König der ursprünglichen Seite darf nicht im Schach stehen
+        const int kingSq = board.kingSq[side];
+        const bool inCheck = (kingSq != -1) && isSquareAttacked(board, kingSq, enemy);
 
         unmakeMove(board, m, u);
 
         if (inCheck) continue;
 
+        // Zusätzliche Rochade-Regeln: König darf nicht im oder über Schach rochieren
         if (m.flags & CASTLING) {
-            int e = (side == WHITE) ? 4  : 60;
+            const int e = (side == WHITE) ? 4 : 60;
             if (m.from != e) continue;
 
             if (isSquareAttacked(board, e, enemy)) continue;
 
             if (side == WHITE) {
-                if (m.to == 6) {
-                    if (isSquareAttacked(board, 5, enemy)) continue;
-                    if (isSquareAttacked(board, 6, enemy)) continue;
-                } else if (m.to == 2) {
-                    if (isSquareAttacked(board, 3, enemy)) continue;
-                    if (isSquareAttacked(board, 2, enemy)) continue;
+                if (m.to == 6) { // g1
+                    if (isSquareAttacked(board, 5, enemy)) continue; // f1
+                    if (isSquareAttacked(board, 6, enemy)) continue; // g1
+                } else if (m.to == 2) { // c1
+                    if (isSquareAttacked(board, 3, enemy)) continue; // d1
+                    if (isSquareAttacked(board, 2, enemy)) continue; // c1
                 } else continue;
             } else {
-                if (m.to == 62) {
-                    if (isSquareAttacked(board, 61, enemy)) continue;
-                    if (isSquareAttacked(board, 62, enemy)) continue;
-                } else if (m.to == 58) {
-                    if (isSquareAttacked(board, 59, enemy)) continue;
-                    if (isSquareAttacked(board, 58, enemy)) continue;
+                if (m.to == 62) { // g8
+                    if (isSquareAttacked(board, 61, enemy)) continue; // f8
+                    if (isSquareAttacked(board, 62, enemy)) continue; // g8
+                } else if (m.to == 58) { // c8
+                    if (isSquareAttacked(board, 59, enemy)) continue; // d8
+                    if (isSquareAttacked(board, 58, enemy)) continue; // c8
                 } else continue;
             }
         }
 
-        legal.push_back(m);
+        // behalten
+        out[w++] = m;
     }
 
-    return legal;
+    out.size = w;
+}
+
+// ------- Wrapper (alt) -------
+
+std::vector<Move> generatePseudoLegalMoves(const Board &board, Color side) {
+    MoveList tmp;
+    generatePseudoLegalMoves(board, side, tmp);
+    return std::vector<Move>(tmp.data.begin(), tmp.data.begin() + tmp.size);
+}
+
+std::vector<Move> generateLegalMoves(Board &board, Color side) {
+    MoveList tmp;
+    generateLegalMoves(board, side, tmp);
+    return std::vector<Move>(tmp.data.begin(), tmp.data.begin() + tmp.size);
 }

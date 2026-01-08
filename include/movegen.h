@@ -1,6 +1,8 @@
 #pragma once
 #include "board.h"
+#include <array>
 #include <vector>
+#include <cstdint>
 
 enum MoveFlags : uint8_t {
     QUIET        = 0,
@@ -23,6 +25,33 @@ struct Move {
 
     uint8_t flags = QUIET;
 };
+
+// Neuer Move-Buffer (keine Heap-Allokationen)
+struct MoveList {
+    static constexpr int MAX_MOVES = 256;
+    std::array<Move, MAX_MOVES> data{};
+    int size = 0;
+
+    inline void clear() { size = 0; }
+
+    inline void push(const Move& m) {
+        // In Release ggf. ohne Check; in Debug schützt es vor Overflows
+        if (size < MAX_MOVES) data[size++] = m;
+    }
+
+    inline const Move& operator[](int i) const { return data[i]; }
+    inline Move& operator[](int i) { return data[i]; }
+};
+
+// ---------------- Buffer-APIs (neu) ----------------
+
+// pseudo-legal in out
+void generatePseudoLegalMoves(const Board& board, Color side, MoveList& out);
+
+// legal in out (nutzt make/unmake + isSquareAttacked Filter)
+void generateLegalMoves(Board& board, Color side, MoveList& out);
+
+// ---------------- Kompatibilitäts-Wrapper (alt) ----------------
 
 // pseudo-legal (ohne "König darf nicht im Schach stehen")
 std::vector<Move> generatePseudoLegalMoves(const Board &board, Color side);

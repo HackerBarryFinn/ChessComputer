@@ -4,4 +4,7 @@
 #include "../movegen.h"
 #include <vector>
 
+void generatePawnMoves(const Board& board, Color side, MoveList& out);
+
+// Wrapper (alt)
 std::vector<Move> generatePawnMoves(const Board& board, Color side);

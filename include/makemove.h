@@ -11,8 +11,11 @@ struct UndoState {
     bool prevBlackKingsideCastle;
     bool prevBlackQueensideCastle;
 
-    // Neu: Königssquares fürs Undo
     int prevKingSq[2] = {-1, -1};
+
+    // Neu: Occupancy/AllOccupied fürs schnelle Undo (und als Sicherheitsnetz)
+    uint64_t prevOccupied[2] = {0ULL, 0ULL};
+    uint64_t prevAllOccupied = 0ULL;
 
     // Capture-Infos fürs Undo
     int capturedPiece = -1;     // PieceType als int, -1 = none

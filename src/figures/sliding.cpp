@@ -2,7 +2,7 @@
 
 static inline uint64_t sqBB(int sq) { return 1ULL << sq; }
 
-static void addRayMoves(std::vector<Move>& moves,
+static void addRayMoves(MoveList& out,
                         const Board& board,
                         Color side,
                         PieceType movedPiece,
@@ -23,10 +23,7 @@ static void addRayMoves(std::vector<Move>& moves,
         int to = r * 8 + f;
         uint64_t toBB = sqBB(to);
 
-        if (own & toBB) {
-            // eigene Figur blockt: Ray endet
-            break;
-        }
+        if (own & toBB) break;
 
         Move m;
         m.from = from;
@@ -35,73 +32,85 @@ static void addRayMoves(std::vector<Move>& moves,
 
         if (enemy & toBB) {
             m.flags = CAPTURE;
-            moves.push_back(m);
-            // nach Capture endet der Ray
+            out.push(m);
             break;
         } else {
             m.flags = QUIET;
-            moves.push_back(m);
+            out.push(m);
         }
     }
 }
 
-static std::vector<int> squaresFromBitboard(uint64_t bb) {
-    std::vector<int> squares;
+static void forEachSquare(uint64_t bb, void(*fn)(int sq, void* ctx), void* ctx) {
     while (bb) {
-        // portable LSB-scan ohne utils.h (wir haben wenige Pieces)
         int sq = 0;
         while (((bb >> sq) & 1ULL) == 0ULL) ++sq;
-        squares.push_back(sq);
+        fn(sq, ctx);
         bb &= (bb - 1);
     }
-    return squares;
+}
+
+void generateBishopMoves(const Board& board, Color side, MoveList& out) {
+    uint64_t bb = board.bitboards[side][BISHOP];
+    while (bb) {
+        int from = 0;
+        while (((bb >> from) & 1ULL) == 0ULL) ++from;
+        bb &= (bb - 1);
+
+        addRayMoves(out, board, side, BISHOP, from, +1, +1);
+        addRayMoves(out, board, side, BISHOP, from, +1, -1);
+        addRayMoves(out, board, side, BISHOP, from, -1, +1);
+        addRayMoves(out, board, side, BISHOP, from, -1, -1);
+    }
+}
+
+void generateRookMoves(const Board& board, Color side, MoveList& out) {
+    uint64_t bb = board.bitboards[side][ROOK];
+    while (bb) {
+        int from = 0;
+        while (((bb >> from) & 1ULL) == 0ULL) ++from;
+        bb &= (bb - 1);
+
+        addRayMoves(out, board, side, ROOK, from, +1, 0);
+        addRayMoves(out, board, side, ROOK, from, -1, 0);
+        addRayMoves(out, board, side, ROOK, from, 0, +1);
+        addRayMoves(out, board, side, ROOK, from, 0, -1);
+    }
+}
+
+void generateQueenMoves(const Board& board, Color side, MoveList& out) {
+    uint64_t bb = board.bitboards[side][QUEEN];
+    while (bb) {
+        int from = 0;
+        while (((bb >> from) & 1ULL) == 0ULL) ++from;
+        bb &= (bb - 1);
+
+        addRayMoves(out, board, side, QUEEN, from, +1, 0);
+        addRayMoves(out, board, side, QUEEN, from, -1, 0);
+        addRayMoves(out, board, side, QUEEN, from, 0, +1);
+        addRayMoves(out, board, side, QUEEN, from, 0, -1);
+
+        addRayMoves(out, board, side, QUEEN, from, +1, +1);
+        addRayMoves(out, board, side, QUEEN, from, +1, -1);
+        addRayMoves(out, board, side, QUEEN, from, -1, +1);
+        addRayMoves(out, board, side, QUEEN, from, -1, -1);
+    }
 }
 
 std::vector<Move> generateBishopMoves(const Board& board, Color side) {
-    std::vector<Move> moves;
-    auto bishops = squaresFromBitboard(board.bitboards[side][BISHOP]);
-
-    for (int from : bishops) {
-        addRayMoves(moves, board, side, BISHOP, from, +1, +1); // NE
-        addRayMoves(moves, board, side, BISHOP, from, +1, -1); // NW
-        addRayMoves(moves, board, side, BISHOP, from, -1, +1); // SE
-        addRayMoves(moves, board, side, BISHOP, from, -1, -1); // SW
-    }
-
-    return moves;
+    MoveList tmp;
+    generateBishopMoves(board, side, tmp);
+    return std::vector<Move>(tmp.data.begin(), tmp.data.begin() + tmp.size);
 }
 
 std::vector<Move> generateRookMoves(const Board& board, Color side) {
-    std::vector<Move> moves;
-    auto rooks = squaresFromBitboard(board.bitboards[side][ROOK]);
-
-    for (int from : rooks) {
-        addRayMoves(moves, board, side, ROOK, from, +1, 0);  // N
-        addRayMoves(moves, board, side, ROOK, from, -1, 0);  // S
-        addRayMoves(moves, board, side, ROOK, from, 0, +1);  // E
-        addRayMoves(moves, board, side, ROOK, from, 0, -1);  // W
-    }
-
-    return moves;
+    MoveList tmp;
+    generateRookMoves(board, side, tmp);
+    return std::vector<Move>(tmp.data.begin(), tmp.data.begin() + tmp.size);
 }
 
 std::vector<Move> generateQueenMoves(const Board& board, Color side) {
-    std::vector<Move> moves;
-    auto queens = squaresFromBitboard(board.bitboards[side][QUEEN]);
-
-    for (int from : queens) {
-        // Rook-like
-        addRayMoves(moves, board, side, QUEEN, from, +1, 0);
-        addRayMoves(moves, board, side, QUEEN, from, -1, 0);
-        addRayMoves(moves, board, side, QUEEN, from, 0, +1);
-        addRayMoves(moves, board, side, QUEEN, from, 0, -1);
-
-        // Bishop-like
-        addRayMoves(moves, board, side, QUEEN, from, +1, +1);
-        addRayMoves(moves, board, side, QUEEN, from, +1, -1);
-        addRayMoves(moves, board, side, QUEEN, from, -1, +1);
-        addRayMoves(moves, board, side, QUEEN, from, -1, -1);
-    }
-
-    return moves;
+    MoveList tmp;
+    generateQueenMoves(board, side, tmp);
+    return std::vector<Move>(tmp.data.begin(), tmp.data.begin() + tmp.size);
 }

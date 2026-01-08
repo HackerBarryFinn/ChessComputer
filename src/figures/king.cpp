@@ -2,11 +2,9 @@
 
 static inline uint64_t sqBB(int sq) { return 1ULL << sq; }
 
-std::vector<Move> generateKingMoves(const Board& board, Color side) {
-    std::vector<Move> moves;
-
+void generateKingMoves(const Board& board, Color side, MoveList& out) {
     uint64_t kingBB = board.bitboards[side][KING];
-    if (kingBB == 0ULL) return moves;
+    if (kingBB == 0ULL) return;
 
     int from = 0;
     while (((kingBB >> from) & 1ULL) == 0ULL) ++from;
@@ -17,7 +15,6 @@ std::vector<Move> generateKingMoves(const Board& board, Color side) {
     int fromFile = from % 8;
     int fromRank = from / 8;
 
-    // Normale King-Moves (8 Nachbarn)
     for (int dr = -1; dr <= 1; ++dr) {
         for (int df = -1; df <= 1; ++df) {
             if (dr == 0 && df == 0) continue;
@@ -36,16 +33,12 @@ std::vector<Move> generateKingMoves(const Board& board, Color side) {
             m.to = to;
             m.moved = KING;
             m.flags = (enemy & toBB) ? CAPTURE : QUIET;
-            moves.push_back(m);
+            out.push(m);
         }
     }
 
-    // Rochade (pseudo-legal: Rechte + Leerfelder + Turm vorhanden)
-    // Attack-Checks (nicht im/über Schach) machen wir im Legal-Filter.
     if (side == WHITE) {
-        // King muss auf e1 stehen
         if (from == 4) {
-            // White kingside: e1->g1, rook h1->f1
             if (board.whiteKingsideCastle) {
                 bool squaresEmpty = ((board.allOccupied & (sqBB(5) | sqBB(6))) == 0ULL);
                 bool rookPresent = (board.bitboards[WHITE][ROOK] & sqBB(7)) != 0ULL;
@@ -55,11 +48,9 @@ std::vector<Move> generateKingMoves(const Board& board, Color side) {
                     m.to = 6;
                     m.moved = KING;
                     m.flags = CASTLING;
-                    moves.push_back(m);
+                    out.push(m);
                 }
             }
-
-            // White queenside: e1->c1, rook a1->d1
             if (board.whiteQueensideCastle) {
                 bool squaresEmpty = ((board.allOccupied & (sqBB(1) | sqBB(2) | sqBB(3))) == 0ULL);
                 bool rookPresent = (board.bitboards[WHITE][ROOK] & sqBB(0)) != 0ULL;
@@ -69,14 +60,12 @@ std::vector<Move> generateKingMoves(const Board& board, Color side) {
                     m.to = 2;
                     m.moved = KING;
                     m.flags = CASTLING;
-                    moves.push_back(m);
+                    out.push(m);
                 }
             }
         }
     } else {
-        // Black king on e8
         if (from == 60) {
-            // Black kingside: e8->g8, rook h8->f8
             if (board.blackKingsideCastle) {
                 bool squaresEmpty = ((board.allOccupied & (sqBB(61) | sqBB(62))) == 0ULL);
                 bool rookPresent = (board.bitboards[BLACK][ROOK] & sqBB(63)) != 0ULL;
@@ -86,11 +75,9 @@ std::vector<Move> generateKingMoves(const Board& board, Color side) {
                     m.to = 62;
                     m.moved = KING;
                     m.flags = CASTLING;
-                    moves.push_back(m);
+                    out.push(m);
                 }
             }
-
-            // Black queenside: e8->c8, rook a8->d8
             if (board.blackQueensideCastle) {
                 bool squaresEmpty = ((board.allOccupied & (sqBB(57) | sqBB(58) | sqBB(59))) == 0ULL);
                 bool rookPresent = (board.bitboards[BLACK][ROOK] & sqBB(56)) != 0ULL;
@@ -100,11 +87,15 @@ std::vector<Move> generateKingMoves(const Board& board, Color side) {
                     m.to = 58;
                     m.moved = KING;
                     m.flags = CASTLING;
-                    moves.push_back(m);
+                    out.push(m);
                 }
             }
         }
     }
+}
 
-    return moves;
+std::vector<Move> generateKingMoves(const Board& board, Color side) {
+    MoveList tmp;
+    generateKingMoves(board, side, tmp);
+    return std::vector<Move>(tmp.data.begin(), tmp.data.begin() + tmp.size);
 }
