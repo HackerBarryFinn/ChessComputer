@@ -12,7 +12,7 @@ struct Board {
     uint64_t occupied[2]{}; // WHITE, BLACK
     uint64_t allOccupied{}; // All pieces
 
-    // Neu: Königssquares cachen (0..63), -1 = nicht vorhanden
+    // Königssquares cachen (0..63), -1 = nicht vorhanden
     int kingSq[2] = {-1, -1};
 
     Color sideToMove = WHITE;

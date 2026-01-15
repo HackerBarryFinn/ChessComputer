@@ -6,7 +6,6 @@ set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_CXX_EXTENSIONS OFF)
 
-# --- Chess-Library (Engine/Logik) ---
 add_library(chess
         src/chess/core/board.cpp
         src/chess/core/movegen.cpp
@@ -31,19 +30,16 @@ target_include_directories(chess
         ${CMAKE_SOURCE_DIR}/include
 )
 
-# --- App/Tests Executable ---
-add_executable(ChessComputer
+# Spiel (CLI)
+add_executable(ChessPlay
+        app/play_main.cpp
+        app/game.cpp
+)
+target_link_libraries(ChessPlay PRIVATE chess)
+
+# Tests
+add_executable(ChessTests
         app/main.cpp
         tests/test_runner.cpp
 )
-
-target_link_libraries(ChessComputer PRIVATE chess)
-
-# Optional: Warnungen (Compiler-abhängig)
-if (MSVC)
-    target_compile_options(chess PRIVATE /W4)
-    target_compile_options(ChessComputer PRIVATE /W4)
-else()
-    target_compile_options(chess PRIVATE -Wall -Wextra -Wpedantic)
-    target_compile_options(ChessComputer PRIVATE -Wall -Wextra -Wpedantic)
-endif()
+target_link_libraries(ChessTests PRIVATE chess)

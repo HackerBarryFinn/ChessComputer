@@ -4,7 +4,7 @@
 #include "chess/rules/makemove.h"
 #include "chess/search/eval.h"
 #include "chess/rules/attacks.h"
-#include "../../../include/chess/core/utils.h"
+#include "chess/core/utils.h"
 #include "chess/search/tt.h"
 
 #include <algorithm>
