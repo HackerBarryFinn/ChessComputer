@@ -1,8 +1,21 @@
 #include "chess/pieces/pawns.h"
 #include "chess/core/utils.h"
 
+/**
+ * Computes a bitboard with a single bit set at the position corresponding to the given square.
+ *
+ * @param sq The index of the square (0-based, ranging from 0 to 63) for which the bitboard is to be created.
+ * @return A 64-bit unsigned integer where exactly one bit is set, representing the given square.
+ */
 static inline uint64_t sqBB(int sq) { return 1ULL << sq; }
 
+/**
+ * Generates all possible pawn moves for the given side on the provided board state, including quiet moves, captures, promotions, double pushes, and en passant.
+ *
+ * @param board The current state of the chessboard, including piece positions and occupied squares.
+ * @param side The color of the pawns for which moves are being generated (WHITE or BLACK).
+ * @param out A list to store the generated moves. This is populated with all valid pawn moves for the given side.
+ */
 void generatePawnMoves(const Board &board, Color side, MoveList& out) {
     uint64_t pawns = board.bitboards[side][PAWN];
 
@@ -213,6 +226,16 @@ void generatePawnMoves(const Board &board, Color side, MoveList& out) {
     }
 }
 
+/**
+ * Generates a list of legal pawn moves for the given side on the provided board.
+ *
+ * This method returns a vector containing all possible pawn moves, including captures,
+ * promotions, single and double pushes, and en passant captures (if available).
+ *
+ * @param board The chess board state for which pawn moves are to be generated.
+ * @param side The color of the pawns (WHITE or BLACK) for which the moves should be generated.
+ * @return A vector of Move objects representing all valid pawn moves for the specified side.
+ */
 std::vector<Move> generatePawnMoves(const Board& board, Color side) {
     MoveList tmp;
     generatePawnMoves(board, side, tmp);

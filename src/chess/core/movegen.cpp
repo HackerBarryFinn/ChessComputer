@@ -8,6 +8,14 @@
 #include "chess/rules/makemove.h"
 #include "chess/rules/attacks.h"
 
+/**
+ * Generates all pseudo-legal moves for a given board state and side to move.
+ * Pseudo-legal moves do not account for the king being in check or moving through attacked squares.
+ *
+ * @param board The current state of the chess board.
+ * @param side The side (color) for which moves should be generated (WHITE or BLACK).
+ * @param out A MoveList structure where the generated moves will be stored. This will be cleared and populated with the new moves.
+ */
 void generatePseudoLegalMoves(const Board &board, Color side, MoveList& out) {
     out.clear();
 
@@ -19,6 +27,15 @@ void generatePseudoLegalMoves(const Board &board, Color side, MoveList& out) {
     generateKingMoves(board, side, out);
 }
 
+/**
+ * Generates all legal moves for a given board state and side to move. Legal moves ensure that
+ * the king is not in check after the move and adhere to all chess rules such as castling
+ * restrictions.
+ *
+ * @param board The current state of the chess board.
+ * @param side The side (color) for which legal moves should be generated (WHITE or BLACK).
+ * @param out A MoveList structure where the validated legal moves will be stored. This will be cleared and populated with the new moves.
+ */
 void generateLegalMoves(Board &board, Color side, MoveList& out) {
     // 1) pseudo-legal direkt in out erzeugen (kein zweiter Buffer)
     generatePseudoLegalMoves(board, side, out);
@@ -67,7 +84,6 @@ void generateLegalMoves(Board &board, Color side, MoveList& out) {
             }
         }
 
-        // behalten
         out[w++] = m;
     }
 
@@ -76,12 +92,29 @@ void generateLegalMoves(Board &board, Color side, MoveList& out) {
 
 // ------- Wrapper (alt) -------
 
+/**
+ * Generates all pseudo-legal moves for the given board state and side to move.
+ * Pseudo-legal moves are moves that do not consider whether the king is in check
+ * or moves through attacked squares.
+ *
+ * @param board The current state of the chess board.
+ * @param side The side (color) for which moves should be generated (WHITE or BLACK).
+ * @return A vector containing all pseudo-legal moves for the given side.
+ */
 std::vector<Move> generatePseudoLegalMoves(const Board &board, Color side) {
     MoveList tmp;
     generatePseudoLegalMoves(board, side, tmp);
     return std::vector<Move>(tmp.data.begin(), tmp.data.begin() + tmp.size);
 }
 
+/**
+ * Generates all legal moves for a given board state and side to move.
+ * Legal moves ensure that the player's king is not in check after the move.
+ *
+ * @param board The current state of the chess board.
+ * @param side The side (color) for which legal moves should be generated (WHITE or BLACK).
+ * @return A vector containing all legal moves for the specified side on the given board.
+ */
 std::vector<Move> generateLegalMoves(Board &board, Color side) {
     MoveList tmp;
     generateLegalMoves(board, side, tmp);

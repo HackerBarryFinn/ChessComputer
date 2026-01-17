@@ -1,8 +1,22 @@
 #include "chess/pieces/knights.h"
 #include "chess/core/utils.h"
 
+/**
+ * Generates a bitboard with a single bit set at the given square.
+ *
+ * @param sq The square index (0 to 63) to set the bit for.
+ * @return A 64-bit integer with only the bit at the specified square set.
+ */
 static inline uint64_t sqBB(int sq) { return 1ULL << sq; }
 
+/**
+ * Generates possible moves for all knights of the specified side on the given board
+ * and appends them to the provided MoveList. Moves include both quiet moves and captures.
+ *
+ * @param board The current state of the chessboard represented as a Board object.
+ * @param side The side for which knight moves are to be generated (WHITE or BLACK).
+ * @param out A MoveList object where the generated knight moves will be stored.
+ */
 void generateKnightMoves(const Board& board, Color side, MoveList& out) {
     uint64_t knights = board.bitboards[side][KNIGHT];
     uint64_t own = board.occupied[side];
@@ -67,6 +81,13 @@ void generateKnightMoves(const Board& board, Color side, MoveList& out) {
     }
 }
 
+/**
+ * Generates all valid knight moves for the specified side and board state.
+ *
+ * @param board The current state of the chessboard.
+ * @param side The color of the player for whom knight moves are to be generated.
+ * @return A vector containing all valid knight moves for the specified side.
+ */
 std::vector<Move> generateKnightMoves(const Board& board, Color side) {
     MoveList tmp;
     generateKnightMoves(board, side, tmp);

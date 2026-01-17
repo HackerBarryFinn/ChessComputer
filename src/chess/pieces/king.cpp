@@ -1,7 +1,23 @@
 #include "chess/pieces/king.h"
 
+/**
+ * Computes the bitboard representation of a square on a chessboard.
+ * A bitboard is a 64-bit integer where each bit represents a square on the board.
+ * The `sqBB` function sets the bit corresponding to the given square index.
+ *
+ * @param sq The square index (0 through 63) for which the bitboard representation is computed.
+ * @return A 64-bit unsigned integer with the corresponding bit set for the given square.
+ */
 static inline uint64_t sqBB(int sq) { return 1ULL << sq; }
 
+/**
+ * Generates all legal moves for a king of a given side on the current chessboard position.
+ * This function calculates standard king moves, captures, and castling moves if applicable.
+ *
+ * @param board The current state of the chessboard containing positions of all pieces.
+ * @param side The side (WHITE or BLACK) for which the king's moves are to be generated.
+ * @param out A list to store generated legal king moves.
+ */
 void generateKingMoves(const Board& board, Color side, MoveList& out) {
     uint64_t kingBB = board.bitboards[side][KING];
     if (kingBB == 0ULL) return;
@@ -94,6 +110,14 @@ void generateKingMoves(const Board& board, Color side, MoveList& out) {
     }
 }
 
+/**
+ * Generates all legal king moves for a specified side (white or black) on the given board.
+ * The moves consider both standard king movements and castling availability.
+ *
+ * @param board The current state of the chessboard, including piece positions and game metadata.
+ * @param side The side (WHITE or BLACK) for which king moves are to be generated.
+ * @return A vector of moves representing all possible legal moves for the king.
+ */
 std::vector<Move> generateKingMoves(const Board& board, Color side) {
     MoveList tmp;
     generateKingMoves(board, side, tmp);
