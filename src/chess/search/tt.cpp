@@ -34,18 +34,18 @@ namespace {
 void initZobrist() {
     std::mt19937_64 rng(0xC0FFEE123456789ULL);
 
-    for (int c = 0; c < 2; ++c) {
-        for (int pt = 0; pt < 6; ++pt) {
-            for (int sq = 0; sq < 64; ++sq) {
-                ZPieces[c][pt][sq] = rand64(rng);
+    for (auto & ZPiece : ZPieces) {
+        for (auto & pt : ZPiece) {
+            for (unsigned long long & sq : pt) {
+                sq = rand64(rng);
             }
         }
     }
 
     ZSide = rand64(rng);
 
-    for (int i = 0; i < 16; ++i) ZCastle[i] = rand64(rng);
-    for (int i = 0; i < 9;  ++i) ZEnPassant[i] = rand64(rng);
+    for (unsigned long long & i : ZCastle) i = rand64(rng);
+    for (unsigned long long & i : ZEnPassant) i = rand64(rng);
 
     zobristReady = true;
 }
@@ -80,7 +80,7 @@ TranspositionTable::TranspositionTable(size_t sizePow2)
     : mask_(sizePow2 - 1), table_(sizePow2) {}
 
 void TranspositionTable::clear() {
-    std::fill(table_.begin(), table_.end(), TTEntry{});
+    std::ranges::fill(table_, TTEntry{});
 }
 
 bool TranspositionTable::probe(uint64_t key, TTEntry& out) const {

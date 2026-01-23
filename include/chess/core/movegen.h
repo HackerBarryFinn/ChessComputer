@@ -2,7 +2,6 @@
 #include "board.h"
 #include <array>
 #include <vector>
-#include <cstdint>
 
 enum MoveFlags : uint8_t {
     QUIET        = 0,

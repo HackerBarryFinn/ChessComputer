@@ -240,7 +240,7 @@ static bool testSearchSmoke() {
     initBitboards(b); // Startpos
 
     // nur Smoke-Test: soll laufen und einen halbwegs normalen Zug zurückgeben
-    const int depth = 3;
+    constexpr int depth = 3;
     Move bm = findBestMoveIterative(b, depth);
 
     std::cout << "bestmove @depth " << depth << ": " << sqToString(bm.from) << sqToString(bm.to) << "\n";

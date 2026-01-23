@@ -70,7 +70,7 @@ static int mvvLvaScore(const Board& board, const Move& m) {
 }
 
 static void orderMovesMvvLva(const Board& board, std::vector<Move>& moves) {
-    std::stable_sort(moves.begin(), moves.end(), [&](const Move& a, const Move& b) {
+    std::ranges::stable_sort(moves, [&](const Move& a, const Move& b) {
         return mvvLvaScore(board, a) > mvvLvaScore(board, b);
     });
 }
@@ -163,9 +163,9 @@ static int quiescence(Board& board, int alpha, int beta) {
 
     auto moves = generateLegalMoves(board, board.sideToMove);
     // Nur Captures
-    moves.erase(std::remove_if(moves.begin(), moves.end(), [](const Move& m) {
+    std::erase_if(moves, [](const Move& m) {
         return (m.flags & CAPTURE) == 0;
-    }), moves.end());
+    });
 
     orderMovesMvvLva(board, moves);
 
@@ -228,7 +228,7 @@ void printTopMoves(Board& board, int depth, int topN) {
         scored.push_back({m, scoreRootMove(board, m, depth)});
     }
 
-    std::stable_sort(scored.begin(), scored.end(), [](const ScoredMove& a, const ScoredMove& b) {
+    std::ranges::stable_sort(scored, [](const ScoredMove& a, const ScoredMove& b) {
         return a.score > b.score;
     });
 
@@ -253,7 +253,6 @@ void printTopMoves(Board& board, int depth, int topN) {
 Move findBestMoveIterative(Board& board, int maxDepth) {
     // Für Iterative Deepening: TT NICHT leeren
     Move best{};
-    int bestScore = std::numeric_limits<int>::min();
 
     for (int d = 1; d <= maxDepth; ++d) {
         auto moves = generateLegalMoves(board, board.sideToMove);
@@ -273,7 +272,7 @@ Move findBestMoveIterative(Board& board, int maxDepth) {
         }
 
         best = localBest;
-        bestScore = localBestScore;
+        int bestScore = localBestScore;
 
         std::cout << "ID depth " << d << ": bestmove "
                   << squareToString(best.from) << squareToString(best.to)

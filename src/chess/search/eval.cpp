@@ -1,6 +1,5 @@
 #include "chess/search/eval.h"
 #include <bit>
-#include <cstdint>
 
 static inline uint64_t sqBB(int sq) { return 1ULL << sq; }
 
@@ -102,7 +101,6 @@ static int kingPawnShieldPenalty(const Board& b, Color side) {
 
 int evaluate(const Board& board) {
     // Materialwerte
-    constexpr int V[6] = {100, 320, 330, 500, 900, 0};
 
     // PSTs:
     // - Knights/Bishops: zentral + aktiv = gut
@@ -167,6 +165,7 @@ int evaluate(const Board& board) {
 
     // 1) Material
     for (int pt = PAWN; pt <= KING; ++pt) {
+        constexpr int V[6] = {100, 320, 330, 500, 900, 0};
         int w = static_cast<int>(std::popcount(board.bitboards[WHITE][pt]));
         int b = static_cast<int>(std::popcount(board.bitboards[BLACK][pt]));
         score += V[pt] * (w - b);

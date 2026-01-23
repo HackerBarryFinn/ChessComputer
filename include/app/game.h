@@ -17,7 +17,7 @@ public:
     // FEN laden (optional)
     bool loadFromFEN(const std::string& fen);
 
-    const Board& board() const { return board_; }
+    [[nodiscard]] const Board& board() const { return board_; }
 
     // Anwenden eines bereits legalen Move-Objekts
     bool applyMove(const Move& m);
@@ -33,7 +33,7 @@ public:
         Move move{};
         UndoState undo{};
     };
-    const std::vector<HistoryEntry>& history() const { return history_; }
+    [[nodiscard]] const std::vector<HistoryEntry>& history() const { return history_; }
 
     // Hilfsfunktionen
     static std::string moveToUci(const Move& m);
