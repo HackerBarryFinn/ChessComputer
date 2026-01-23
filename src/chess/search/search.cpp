@@ -12,7 +12,21 @@
 #include <limits>
 #include <vector>
 
-static constexpr int MATE_SCORE = 100000;
+static constexpr int MATE_SCORE      = 100000;
+static constexpr int MATE_THRESHOLD  = 90000;
+
+// Hilfsfunktionen für Mate-Distanzierung
+static inline int toTTScore(int score, int ply) {
+    if (score > MATE_THRESHOLD)  return score + ply;
+    if (score < -MATE_THRESHOLD) return score - ply;
+    return score;
+}
+
+static inline int fromTTScore(int score, int ply) {
+    if (score > MATE_THRESHOLD)  return score - ply;
+    if (score < -MATE_THRESHOLD) return score + ply;
+    return score;
+}
 
 // Globale TT (später ggf. in Engine-Klasse kapseln)
 static TranspositionTable gTT(1u << 20);
@@ -63,38 +77,45 @@ static void orderMovesMvvLva(const Board& board, std::vector<Move>& moves) {
 
 static int quiescence(Board& board, int alpha, int beta);
 
-static int negamax(Board& board, int depth, int alpha, int beta) {
+static int negamax(Board& board, int depth, int alpha, int beta, int ply = 0) {
     const uint64_t key = computeZobrist(board);
 
     // TT Probe
     TTEntry hit;
     if (gTT.probe(key, hit) && hit.depth >= depth) {
-        if (hit.flag == TTFlag::EXACT) return hit.score;
+        int ttScore = fromTTScore(hit.score, ply);
 
-        if (hit.flag == TTFlag::LOWERBOUND) alpha = std::max(alpha, hit.score);
-        else if (hit.flag == TTFlag::UPPERBOUND) beta = std::min(beta, hit.score);
+        if (hit.flag == TTFlag::EXACT)
+            return ttScore;
 
-        if (alpha >= beta) return hit.score;
+        if (hit.flag == TTFlag::LOWERBOUND)
+            alpha = std::max(alpha, ttScore);
+        else if (hit.flag == TTFlag::UPPERBOUND)
+            beta = std::min(beta, ttScore);
+
+        if (alpha >= beta)
+            return ttScore;
     }
 
     auto moves = generateLegalMoves(board, board.sideToMove);
 
-    // Terminal: keine Züge -> Matt oder Patt
+    // Terminal: Matt oder Patt
     if (moves.empty()) {
         Color side = board.sideToMove;
         Color enemy = (side == WHITE) ? BLACK : WHITE;
         int kingSq = findKingSquare(board, side);
         bool inCheck = (kingSq != -1) && isSquareAttacked(board, kingSq, enemy);
 
-        int res = inCheck ? -MATE_SCORE : 0;
-        gTT.store(key, depth, res, TTFlag::EXACT, Move{});
+        int res = inCheck ? -(MATE_SCORE - ply) : 0;
+
+        gTT.store(key, depth, toTTScore(res, ply), TTFlag::EXACT, Move{});
         return res;
     }
 
-    // Blatt: Quiescence statt direkter Eval
+    // Blatt: Quiescence
     if (depth == 0) {
         int res = quiescence(board, alpha, beta);
-        gTT.store(key, depth, res, TTFlag::EXACT, Move{});
+        gTT.store(key, depth, toTTScore(res, ply), TTFlag::EXACT, Move{});
         return res;
     }
 
@@ -106,9 +127,10 @@ static int negamax(Board& board, int depth, int alpha, int beta) {
 
     for (const auto& m : moves) {
         UndoState u{};
-        if (!makeMove(board, m, u)) continue;
+        if (!makeMove(board, m, u))
+            continue;
 
-        int score = -negamax(board, depth - 1, -beta, -alpha);
+        int score = -negamax(board, depth - 1, -beta, -alpha, ply + 1);
 
         unmakeMove(board, m, u);
 
@@ -117,16 +139,20 @@ static int negamax(Board& board, int depth, int alpha, int beta) {
             bestMove = m;
         }
 
-        if (score > alpha) alpha = score;
-        if (alpha >= beta) break; // cutoff
+        if (score > alpha)
+            alpha = score;
+
+        if (alpha >= beta)
+            break; // cutoff
     }
 
-    // TT Store (Bound-Typ)
+    // TT Store
     TTFlag flag = TTFlag::EXACT;
     if (bestScore <= originalAlpha) flag = TTFlag::UPPERBOUND;
-    else if (bestScore >= beta) flag = TTFlag::LOWERBOUND;
+    else if (bestScore >= beta)     flag = TTFlag::LOWERBOUND;
 
-    gTT.store(key, depth, bestScore, flag, bestMove);
+    gTT.store(key, depth, toTTScore(bestScore, ply), flag, bestMove);
+
     return bestScore;
 }
 
