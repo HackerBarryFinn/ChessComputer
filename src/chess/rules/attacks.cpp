@@ -1,8 +1,8 @@
 #include "chess/rules/attacks.h"
 #include <cstdint>
 
-static inline uint64_t sqBB(int sq) { return 1ULL << sq; }
-static inline bool inBoard(int r, int f) { return r >= 0 && r < 8 && f >= 0 && f < 8; }
+static uint64_t sqBB(int sq) { return 1ULL << sq; }
+static bool inBoard(int r, int f) { return r >= 0 && r < 8 && f >= 0 && f < 8; }
 
 int findKingSquare(const Board& board, Color side) {
     return board.kingSq[side];
