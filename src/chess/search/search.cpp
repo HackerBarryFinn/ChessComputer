@@ -13,8 +13,8 @@
 #include <vector>
 #include <array>
 
-static constexpr int MATE_SCORE      = 100000;
-static constexpr int MATE_THRESHOLD  = 90000;
+static constexpr int MATE_SCORE = 100000;
+static constexpr int MATE_THRESHOLD = 90000;
 
 // Hilfsfunktionen für Mate-Distanzierung
 static inline int toTTScore(int score, int ply) {
@@ -85,6 +85,25 @@ namespace {
         // einfacher Clamp, damit es nicht unendlich wächst
         entry += bonus;
         if (entry > 1'000'000) entry = 1'000'000;
+    }
+
+    struct NullUndoState {
+        Color prevSideToMove;
+        uint64_t prevEnPassantTarget;
+    };
+
+    inline void makeNullMove(Board& board, NullUndoState& u) {
+        u.prevSideToMove = board.sideToMove;
+        u.prevEnPassantTarget = board.enPassantTarget;
+
+        // Null-Move: Seite wechseln, EP löschen (EP-Rechte verfallen nach einem "Zug")
+        board.enPassantTarget = 0ULL;
+        board.sideToMove = (board.sideToMove == WHITE) ? BLACK : WHITE;
+    }
+
+    inline void unmakeNullMove(Board& board, const NullUndoState& u) {
+        board.sideToMove = u.prevSideToMove;
+        board.enPassantTarget = u.prevEnPassantTarget;
     }
 }
 
@@ -167,7 +186,7 @@ static void orderMovesKillerHistory(const Board& board,
 
 static int quiescence(Board& board, int alpha, int beta);
 
-static int negamax(Board& board, int depth, int alpha, int beta, int ply = 0) {
+static int negamax(Board& board, int depth, int alpha, int beta, int ply = 0, bool allowNullMove = true) {
     const uint64_t key = computeZobrist(board);
 
     // TT Probe
@@ -191,6 +210,46 @@ static int negamax(Board& board, int depth, int alpha, int beta, int ply = 0) {
     } else if (gTT.probe(key, hit)) {
         ttMove = hit.bestMove;
     }
+
+    // ------------------- Null-Move Pruning -------------------
+    // Bedingungen (konservativ):
+    // - nicht im Schach
+    // - genügend Tiefe
+    // - kein aufeinanderfolgender Null-Move
+    // - kein "Mate-Score"-Bereich (optional, aber hier weggelassen)
+    if (allowNullMove && depth >= 3 && ply < MAX_PLY - 1) {
+        const Color side = board.sideToMove;
+        const Color enemy = (side == WHITE) ? BLACK : WHITE;
+
+        const int ksq = board.kingSq[side];
+        const bool inCheck = (ksq != -1) && isSquareAttacked(board, ksq, enemy);
+
+        if (!inCheck) {
+            // Reduktion R (klassisch ~2). Für kleine Engine: fix 2 ist ok.
+            constexpr int R = 2;
+
+            if (depth > R + 1) {
+                NullUndoState nu{};
+                makeNullMove(board, nu);
+
+                // Null-Window Search (fail-high Test)
+                int score = -negamax(board,
+                                     depth - 1 - R,
+                                     -beta,
+                                     -beta + 1,
+                                     ply + 1,
+                                     false);
+
+                unmakeNullMove(board, nu);
+
+                if (score >= beta) {
+                    // fail-hard cutoff
+                    return beta;
+                }
+            }
+        }
+    }
+    // ---------------------------------------------------------
 
     auto moves = generateLegalMoves(board, board.sideToMove);
 
@@ -221,12 +280,70 @@ static int negamax(Board& board, int depth, int alpha, int beta, int ply = 0) {
     int bestScore = std::numeric_limits<int>::min();
     Move bestMove{};
 
+    // Für LMR brauchen wir „inCheck“-Status am Knoten (konservativ)
+    const Color stmNode = board.sideToMove;
+    const Color enemyNode = (stmNode == WHITE) ? BLACK : WHITE;
+    const int kingSqNode = board.kingSq[stmNode];
+    const bool inCheckNode = (kingSqNode != -1) && isSquareAttacked(board, kingSqNode, enemyNode);
+
+    int moveIndex = 0;
     for (const auto& m : moves) {
+        ++moveIndex;
+
         UndoState u{};
         if (!makeMove(board, m, u))
             continue;
 
-        int score = -negamax(board, depth - 1, -beta, -alpha, ply + 1);
+        int score = std::numeric_limits<int>::min();
+
+        // ------------------- Late Move Reductions (LMR) -------------------
+        // Idee: „späte“ Züge (nach den guten Kandidaten) zunächst mit reduzierter Tiefe
+        // in einem Null-Window suchen. Nur wenn sie Alpha verbessern könnten -> volle Suche.
+        //
+        // Konservative Bedingungen:
+        // - genügend Tiefe
+        // - nicht im Schach (sonst Taktiken)
+        // - Quiet-Move (keine Captures)
+        // - nicht einer der ersten Moves
+        // - nicht TT-Move / nicht Killer
+        bool canLMR = false;
+        if (depth >= 3 && !inCheckNode && !isCaptureLike(m) && moveIndex > 3) {
+            bool isTT = (ttMove.from != 0 || ttMove.to != 0 || ttMove.flags != 0 || ttMove.promotion != -1)
+                        && sameMoveKey(m, ttMove);
+
+            bool isKiller = false;
+            if (ply >= 0 && ply < MAX_PLY) {
+                isKiller = sameMoveKey(m, gKillers[ply][0]) || sameMoveKey(m, gKillers[ply][1]);
+            }
+
+            if (!isTT && !isKiller) canLMR = true;
+        }
+
+        if (canLMR) {
+            // einfache Reduktionsformel (robust für kleine Engines)
+            int R = 1;
+            if (depth >= 5 && moveIndex > 6) R = 2;
+
+            // Reduced-Depth Null-Window Search
+            const int reducedDepth = (depth - 1 - R);
+            if (reducedDepth > 0) {
+                int reduced = -negamax(board, reducedDepth, -alpha - 1, -alpha, ply + 1, true);
+
+                if (reduced > alpha) {
+                    // Re-Search mit voller Tiefe + normalem Fenster
+                    score = -negamax(board, depth - 1, -beta, -alpha, ply + 1, true);
+                } else {
+                    score = reduced;
+                }
+            } else {
+                // falls Reduktion zu aggressiv wäre: normal suchen
+                score = -negamax(board, depth - 1, -beta, -alpha, ply + 1, true);
+            }
+        } else {
+            // normale Vollsuche
+            score = -negamax(board, depth - 1, -beta, -alpha, ply + 1, true);
+        }
+        // ---------------------------------------------------------------
 
         unmakeMove(board, m, u);
 
@@ -293,7 +410,7 @@ static int scoreRootMove(Board& board, const Move& m, int depth) {
     int alpha = std::numeric_limits<int>::min() + 1;
     int beta  = std::numeric_limits<int>::max();
 
-    int score = -negamax(board, depth - 1, -beta, -alpha);
+    int score = -negamax(board, depth - 1, -beta, -alpha, 1, true);
 
     unmakeMove(board, m, u);
     return score;
