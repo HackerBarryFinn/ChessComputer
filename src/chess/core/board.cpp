@@ -2,9 +2,8 @@
 #include <iostream>
 
 /**
- * Initializes the bitboards, occupied squares, and king positions for both
- * players (White and Black) in a chess game. Sets up the starting positions
- * of all pieces on the board in the standard initial chess setup.
+ * Initializes the bitboards, occupied squares, and king positions for both players (White and Black).
+ * Sets up the starting positions of all pieces on the board in the standard initial chess setup.
  *
  * @param board The `Board` object to be initialized. This includes:
  * - `bitboards` for the initial piece placements for each piece type.
@@ -40,27 +39,6 @@ void initBitboards(Board &board) {
     // Initializes King squares (e1=4, e8=60)
     board.kingSq[WHITE] = 4;
     board.kingSq[BLACK] = 60;
-}
-
-/**
- * Prints a visual representation of a given bitboard to the console.
- * The board is displayed with ranks (1-8) and files (a-h), where each square
- * shows "1" if there is a bit set in the corresponding position on the bitboard
- * and "." otherwise.
- *
- * @param bitboard The 64-bit unsigned integer representing the bitboard
- * where each bit corresponds to a square on the chessboard (from a1 to h8).
- */
-void printBitboard(const uint64_t bitboard) {
-    for (int rank = 7; rank >= 0; --rank) {
-        std::cout << rank + 1 << "  ";
-        for (int file = 0; file < 8; ++file) {
-            const int square = rank * 8 + file;
-            std::cout << ((bitboard >> square) & 1ULL ? "1 " : ". ");
-        }
-        std::cout << std::endl;
-    }
-    std::cout << "\n   a b c d e f g h\n" << std::endl;
 }
 
 /**

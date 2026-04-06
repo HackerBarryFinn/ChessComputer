@@ -109,17 +109,3 @@ void generateKingMoves(const Board& board, Color side, MoveList& out) {
         }
     }
 }
-
-/**
- * Generates all legal king moves for a specified side (white or black) on the given board.
- * The moves consider both standard king movements and castling availability.
- *
- * @param board The current state of the chessboard, including piece positions and game metadata.
- * @param side The side (WHITE or BLACK) for which king moves are to be generated.
- * @return A vector of moves representing all possible legal moves for the king.
- */
-std::vector<Move> generateKingMoves(const Board& board, Color side) {
-    MoveList tmp;
-    generateKingMoves(board, side, tmp);
-    return std::vector<Move>(tmp.data.begin(), tmp.data.begin() + tmp.size);
-}

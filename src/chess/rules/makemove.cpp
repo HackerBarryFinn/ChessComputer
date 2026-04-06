@@ -1,7 +1,22 @@
 #include "chess/rules/makemove.h"
 
+/**
+ * Computes a bitboard with a single bit set at the specified square index.
+ *
+ * @param sq The square index (0-63) where the bit should be set.
+ * @return A 64-bit unsigned integer representing the bitboard with one bit set.
+ */
 static inline uint64_t sqBB(int sq) { return 1ULL << sq; }
 
+/**
+ * Identifies the type of piece located on a specific square for a given color on the chessboard.
+ *
+ * @param b The chessboard representation containing bitboards of pieces.
+ * @param c The color of the pieces to check (WHITE or BLACK).
+ * @param square The index of the square to check (0-63).
+ * @return The type of piece (e.g., PAWN, KNIGHT, BISHOP, ROOK, QUEEN, KING) if a piece exists on the square;
+ *         -1 if no piece of the specified color is found on the square.
+ */
 static int findPieceOnSquare(const Board& b, Color c, int square) {
     uint64_t mask = sqBB(square);
     for (int pt = PAWN; pt <= KING; ++pt) {
@@ -10,6 +25,15 @@ static int findPieceOnSquare(const Board& b, Color c, int square) {
     return -1;
 }
 
+/**
+ * Revokes castling rights for a given move, based on the piece moved and its initial position.
+ *
+ * @param board The current state of the chess board, which will be updated to reflect
+ *              the changes to castling rights.
+ * @param side The color of the player making the move (WHITE or BLACK).
+ * @param move The move being made, containing information about the piece moved
+ *             and its starting and ending positions.
+ */
 static void revokeCastlingRightsForMove(Board& board, Color side, const Move& move) {
     if (move.moved == KING) {
         if (side == WHITE) {
@@ -33,6 +57,15 @@ static void revokeCastlingRightsForMove(Board& board, Color side, const Move& mo
     }
 }
 
+/**
+ * Updates the castling rights on the board based on a captured rook's position.
+ * If the captured piece is not a rook, no changes are made.
+ *
+ * @param board The game board containing the current state of the chess game.
+ * @param enemy The color of the opposing side (enemy) that owns the captured rook.
+ * @param capturedSquare The square index (0-63) where the rook was captured.
+ * @param capturedPiece The type of the piece that was captured, allowing identification of a rook.
+ */
 static void revokeCastlingRightsForCapturedRook(Board& board, Color enemy, int capturedSquare, int capturedPiece) {
     if (capturedPiece != ROOK) return;
 
@@ -45,6 +78,21 @@ static void revokeCastlingRightsForCapturedRook(Board& board, Color enemy, int c
     }
 }
 
+/**
+ * Executes a move on the chess board, updating the game state and validating the move.
+ *
+ * This method applies the given move to the board, updates piece positions, handles special
+ * moves such as castling, en passant, and pawn promotion, and updates castling rights. It
+ * also validates the legality of the move and returns false if the move is invalid. Undo
+ * information is stored in the provided UndoState object for potential rollbacks.
+ *
+ * @param board The game board representing the current state of the chess position.
+ * @param move The move to be executed, defined by the source square, destination square,
+ *             and any associated move flags (e.g., castling, en passant, promotion).
+ * @param undo An UndoState object used to store pre-move game state information for rollback purposes.
+ * @return A boolean value indicating whether the move was successfully made. Returns false if the move
+ *         is illegal or invalid based on the board state or move validation checks.
+ */
 bool makeMove(Board& board, const Move& move, UndoState& undo) {
     // Undo sichern
     undo.previousSideToMove = board.sideToMove;
@@ -239,6 +287,13 @@ bool makeMove(Board& board, const Move& move, UndoState& undo) {
     return true;
 }
 
+/**
+ * Reverts the last move made on the board, restoring the previous state.
+ *
+ * @param board The current board state to be modified.
+ * @param move The move that was previously made and needs to be reverted.
+ * @param undo The undo information that contains the board state prior to the move.
+ */
 void unmakeMove(Board& board, const Move& move, const UndoState& undo) {
     (void)move;
 

@@ -2,6 +2,15 @@
 #include "chess/core/movegen.h"
 #include "chess/rules/makemove.h"
 
+/**
+ * Performs a perft (performance test) calculation to count all possible nodes at a given depth in a chess game tree.
+ *
+ * @param board The current state of the chess board.
+ * @param depth The remaining depth to explore in the game tree.
+ * @param moveStack A pointer to an array used to store move lists for each ply of the search.
+ * @param ply The current ply (depth within the tree traversal).
+ * @return The total number of nodes at the specified depth.
+ */
 uint64_t perft(Board& board, int depth, MoveList* moveStack, int ply) {
     if (depth <= 0) return 1ULL;
 

@@ -80,16 +80,3 @@ void generateKnightMoves(const Board& board, Color side, MoveList& out) {
         }
     }
 }
-
-/**
- * Generates all valid knight moves for the specified side and board state.
- *
- * @param board The current state of the chessboard.
- * @param side The color of the player for whom knight moves are to be generated.
- * @return A vector containing all valid knight moves for the specified side.
- */
-std::vector<Move> generateKnightMoves(const Board& board, Color side) {
-    MoveList tmp;
-    generateKnightMoves(board, side, tmp);
-    return std::vector<Move>(tmp.data.begin(), tmp.data.begin() + tmp.size);
-}

@@ -1,8 +1,20 @@
 #include "chess/search/eval.h"
 #include <bit>
 
+/**
+ * Generates a bitboard with a single bit set at the given square.
+ *
+ * @param sq The square index (0 to 63) to set the bit for.
+ * @return A 64-bit integer with only the bit at the specified square set.
+ */
 static inline uint64_t sqBB(int sq) { return 1ULL << sq; }
 
+/**
+ * Mirrors a given chess square index to its equivalent on the opposite rank.
+ *
+ * @param sq The square index (0 to 63) to be mirrored.
+ * @return The mirrored square index (0 to 63) after flipping across the horizontal axis.
+ */
 static int mirrorSquare(int sq) {
     int file = sq % 8;
     int rank = sq / 8;
@@ -10,6 +22,16 @@ static int mirrorSquare(int sq) {
     return mrank * 8 + file;
 }
 
+/**
+ * Evaluates the positional score for white pieces based on the provided bitboard
+ * and piece-square table.
+ *
+ * @param bb A bitboard representing the positions of white pieces of a specific type.
+ * @param pst An array containing the piece-square table values for the specific piece
+ *            type, where each index corresponds to a square on the board.
+ * @return The sum of the PST values for all squares occupied by white pieces
+ *         on the bitboard.
+ */
 static int evalPstWhite(uint64_t bb, const int pst[64]) {
     int sum = 0;
     while (bb) {
@@ -20,6 +42,14 @@ static int evalPstWhite(uint64_t bb, const int pst[64]) {
     return sum;
 }
 
+/**
+ * Evaluates the positional strength of black pieces using the provided positional scoring table (PST)
+ * for mirrored positions of the squares occupied by the pieces on the bitboard.
+ *
+ * @param bb A bitboard (64-bit integer) representing the positions of black pieces.
+ * @param pst The positional scoring table (PST) array containing scores for each square (0 to 63).
+ * @return The total positional score for the black pieces based on the given PST.
+ */
 static int evalPstBlack(uint64_t bb, const int pst[64]) {
     int sum = 0;
     while (bb) {
@@ -30,9 +60,17 @@ static int evalPstBlack(uint64_t bb, const int pst[64]) {
     return sum;
 }
 
+/**
+ * Calculates a bonus score for advancing white pawns based on their ranks.
+ * Pawns closer to promotion (ranks 2 to 7) receive a progressively higher bonus.
+ * This encourages pawn advancement towards promotion.
+ *
+ * @param pawns A 64-bit bitboard representing the positions of the white pawns.
+ *              Each bit corresponds to a square on the chessboard (0 to 63).
+ * @return The total bonus score for the advancement of white pawns.
+ */
 static int pawnAdvanceBonusWhite(uint64_t pawns) {
-    // Bonus je weiter vorne (Rank 2..7). Sehr simpel, aber hilft bei Promotion-Plan.
-    // rank = sq/8 (0..7)
+    // Bonus je weiter vorne (Rank 2..7). Hilft bei Promotion-Plan.
     int bonus = 0;
     while (pawns) {
         int sq = std::countr_zero(pawns);
@@ -46,8 +84,15 @@ static int pawnAdvanceBonusWhite(uint64_t pawns) {
     return bonus;
 }
 
+/**
+ * Calculates the bonus score for advanced black pawns based on their ranks,
+ * encouraging progress towards promotion. Higher ranks yield higher bonuses.
+ *
+ * @param pawns A bitboard representing the positions of all black pawns.
+ * @return The total bonus for the advancement of black pawns.
+ */
 static int pawnAdvanceBonusBlack(uint64_t pawns) {
-    // Black pawns wollen runter; wir spiegeln über mirrorSquare-Logik
+    // Black pawns wollen runter
     int bonus = 0;
     while (pawns) {
         int sq = std::countr_zero(pawns);
@@ -60,6 +105,15 @@ static int pawnAdvanceBonusBlack(uint64_t pawns) {
     return bonus;
 }
 
+/**
+ * Computes a penalty value based on the lack of pawn shielding in front of the king
+ * for the specified side. This evaluates rows in front of the king's position
+ * and checks for missing pawns, assigning penalties accordingly.
+ *
+ * @param b The board state containing the position of all pieces.
+ * @param side The side (WHITE or BLACK) for which the penalty is to be calculated.
+ * @return An integer penalty value, where higher values indicate weaker pawn shielding.
+ */
 static int kingPawnShieldPenalty(const Board& b, Color side) {
     const int ksq = b.kingSq[side];
     if (ksq < 0) return 0;
@@ -99,6 +153,22 @@ static int kingPawnShieldPenalty(const Board& b, Color side) {
     return penalty;
 }
 
+/**
+ * Evaluates the given chess position represented by the board state
+ * and calculates a score indicating the position's favorability for White.
+ *
+ * The evaluation is based on several factors, including:
+ * - Material value for each piece type.
+ * - Piece-Square Tables (PST) for evaluating piece activity and placement.
+ * - Pawn structure, including advancement and promotion potential.
+ * - King safety, particularly based on the pawn shield.
+ *
+ * Positive scores favor White, while negative scores favor Black.
+ *
+ * @param board The chess board state containing all necessary information
+ *              about the pieces, their placement, and other state-related data.
+ * @return An integer score representing the evaluation of the position.
+ */
 int evaluate(const Board& board) {
     // Materialwerte
 
@@ -185,11 +255,11 @@ int evaluate(const Board& board) {
     score -= evalPstBlack(board.bitboards[BLACK][ROOK],   ROOK_PST);
     score -= evalPstBlack(board.bitboards[BLACK][QUEEN],  QUEEN_PST);
 
-    // --- Neu: Pawn-Advance (Promotion-Drang) ---
+    // Pawn-Advance (Promotion-Drang)
     score += pawnAdvanceBonusWhite(board.bitboards[WHITE][PAWN]);
     score -= pawnAdvanceBonusBlack(board.bitboards[BLACK][PAWN]);
 
-    // --- Neu: King Safety (Pawn Shield) ---
+    // King Safety (Pawn Shield)
     // Fehlender Shield ist schlecht für die jeweilige Seite:
     score -= kingPawnShieldPenalty(board, WHITE);
     score += kingPawnShieldPenalty(board, BLACK);

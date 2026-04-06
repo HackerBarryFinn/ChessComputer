@@ -225,19 +225,3 @@ void generatePawnMoves(const Board &board, Color side, MoveList& out) {
         }
     }
 }
-
-/**
- * Generates a list of legal pawn moves for the given side on the provided board.
- *
- * This method returns a vector containing all possible pawn moves, including captures,
- * promotions, single and double pushes, and en passant captures (if available).
- *
- * @param board The chess board state for which pawn moves are to be generated.
- * @param side The color of the pawns (WHITE or BLACK) for which the moves should be generated.
- * @return A vector of Move objects representing all valid pawn moves for the specified side.
- */
-std::vector<Move> generatePawnMoves(const Board& board, Color side) {
-    MoveList tmp;
-    generatePawnMoves(board, side, tmp);
-    return std::vector<Move>(tmp.data.begin(), tmp.data.begin() + tmp.size);
-}

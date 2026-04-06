@@ -24,5 +24,4 @@ struct Board {
 };
 
 void initBitboards(Board &board);
-void printBitboard(uint64_t bitboard);
 void printBoard(const Board &board);

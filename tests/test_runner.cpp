@@ -147,8 +147,9 @@ static bool testMovegenBasics() {
         if (!loadFEN(b, "8/8/8/8/3N4/8/8/4k3 w - - 0 1"))
             return expect(false, "FEN load (knight)");
 
-        auto moves = generateKnightMoves(b, WHITE);
-        if (!expect(static_cast<int>(moves.size()) == 8, "knight moves expected 8")) return false;
+        MoveList moves;
+        generateKnightMoves(b, WHITE, moves);
+        if (!expect(moves.size == 8, "knight moves expected 8")) return false;
     }
 
     // Beispiel 2: Rook moves in leerer Stellung (d4 -> 14)
@@ -157,8 +158,9 @@ static bool testMovegenBasics() {
         if (!loadFEN(b, "8/8/8/8/3R4/8/8/4k3 w - - 0 1"))
             return expect(false, "FEN load (rook)");
 
-        auto moves = generateRookMoves(b, WHITE);
-        if (!expect(static_cast<int>(moves.size()) == 14, "rook moves expected 14")) return false;
+        MoveList moves;
+        generateRookMoves(b, WHITE, moves);
+        if (!expect(moves.size == 14, "rook moves expected 14")) return false;
     }
 
     std::cout << "[OK] testMovegenBasics\n";

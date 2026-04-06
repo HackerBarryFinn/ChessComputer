@@ -1,13 +1,48 @@
 #include "chess/rules/attacks.h"
 #include <cstdint>
 
+/**
+ * Creates a bitboard with a single bit set for the specified square.
+ *
+ * @param sq An integer representing the square index (0 to 63).
+ * @return A 64-bit integer (bitboard) where only the bit corresponding to
+ *         the specified square index is set. All other bits are zero.
+ */
 static uint64_t sqBB(int sq) { return 1ULL << sq; }
+
+/**
+ * Checks if the given rank and file coordinates are within the bounds of the chessboard.
+ *
+ * @param r An integer representing the rank (row) of the chessboard (0 to 7).
+ * @param f An integer representing the file (column) of the chessboard (0 to 7).
+ * @return A boolean value: true if the given rank and file are within the bounds
+ *         of the chessboard, false otherwise.
+ */
 static bool inBoard(int r, int f) { return r >= 0 && r < 8 && f >= 0 && f < 8; }
 
+/**
+ * Finds the square index of the king for the specified side on the given board.
+ *
+ * @param board The current chess board state.
+ * @param side The color of the side (WHITE or BLACK) whose king's position
+ *             is being queried.
+ * @return An integer representing the square index of the king's position on
+ *         the board. Returns -1 if the king is not present.
+ */
 int findKingSquare(const Board& board, Color side) {
     return board.kingSq[side];
 }
 
+/**
+ * Generates a bitboard representing all squares that can be attacked by pawns
+ * of a given color from their current positions.
+ *
+ * @param byColor The color of the pawns (WHITE or BLACK).
+ * @param pawns A 64-bit bitboard where each bit set to 1 represents the position
+ *              of a pawn on the board for the given color.
+ * @return A 64-bit bitboard where each bit set to 1 represents a square that can
+ *         be attacked by the pawns of the specified color.
+ */
 static uint64_t pawnAttackMask(Color byColor, uint64_t pawns) {
     constexpr uint64_t FILE_A = 0x0101010101010101ULL;
     constexpr uint64_t FILE_H = 0x8080808080808080ULL;
@@ -23,6 +58,14 @@ static uint64_t pawnAttackMask(Color byColor, uint64_t pawns) {
     }
 }
 
+/**
+ * Computes the attack mask for a knight from a given square on a chessboard.
+ *
+ * @param sq An integer representing the square index (0 to 63) where the
+ *           knight is located.
+ * @return A 64-bit integer (bitboard) where the bits corresponding to the
+ *         squares the knight can attack are set to 1. All other bits are 0.
+ */
 static uint64_t knightAttackMask(int sq) {
     constexpr uint64_t FILE_A = 0x0101010101010101ULL;
     constexpr uint64_t FILE_B = 0x0202020202020202ULL;
@@ -67,6 +110,20 @@ static uint64_t kingAttackMask(int sq) {
     return attacks;
 }
 
+/**
+ * Determines whether a square is attacked along a specified ray direction
+ * by a piece of a given color.
+ *
+ * @param board The current state of the chessboard.
+ * @param square An integer representing the square index (0 to 63) being checked.
+ * @param byColor The color of the attacking pieces (WHITE or BLACK).
+ * @param dr The change in the rank (row) direction for the ray.
+ * @param df The change in the file (column) direction for the ray.
+ * @param bishopLike A boolean indicating whether to consider bishop-like pieces (BISHOP or QUEEN).
+ * @param rookLike A boolean indicating whether to consider rook-like pieces (ROOK or QUEEN).
+ * @return True if the square is attacked along the specified ray by the given color and piece type(s);
+ *         false otherwise.
+ */
 static bool rayAttackedBy(const Board& board, int square, Color byColor, int dr, int df,
                           bool bishopLike, bool rookLike) {
     int r = square / 8;
@@ -98,6 +155,14 @@ static bool rayAttackedBy(const Board& board, int square, Color byColor, int dr,
     }
 }
 
+/**
+ * Checks if a specific square on the chessboard is under attack by a given color.
+ *
+ * @param board A reference to the chessboard, which contains the positions of all pieces.
+ * @param square An integer representing the square index (0 to 63) to check for an attack.
+ * @param byColor The color of the pieces to check for the attacking threat (WHITE or BLACK).
+ * @return true if the specified square is attacked by a piece of the given color; false otherwise.
+ */
 bool isSquareAttacked(const Board& board, int square, Color byColor) {
     if (square < 0 || square >= 64) return false;
 

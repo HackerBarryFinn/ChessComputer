@@ -8,7 +8,7 @@
 
 int main() {
     Game game;
-    constexpr int ENGINE_DEPTH = 6;
+    constexpr int ENGINE_DEPTH = 4;
 
     std::cout << "ChessComputer (CLI)\n"
                  "Eingabe: UCI-Zug wie e2e4 oder e7e8q\n"
