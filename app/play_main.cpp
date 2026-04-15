@@ -8,7 +8,7 @@
 
 int main() {
     Game game;
-    constexpr int ENGINE_DEPTH = 4;
+    constexpr int ENGINE_DEPTH = 7;
 
     std::cout << "ChessComputer (CLI)\n"
                  "Eingabe: UCI-Zug wie e2e4 oder e7e8q\n"
@@ -28,7 +28,6 @@ int main() {
 
             if (!game.applyUci(line)) {
                 std::cout << "Ungueltiger/illegaler Zug.\n";
-                continue;
             }
         } else {
             std::cout << "Engine denkt (Schwarz, depth " << ENGINE_DEPTH << ")...\n";

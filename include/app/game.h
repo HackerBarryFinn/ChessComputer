@@ -14,7 +14,7 @@ public:
     // Startposition
     void resetToStartpos();
 
-    // FEN laden (optional)
+    // FEN laden
     bool loadFromFEN(const std::string& fen);
 
     [[nodiscard]] const Board& board() const { return board_; }
@@ -22,7 +22,7 @@ public:
     // Anwenden eines bereits legalen Move-Objekts
     bool applyMove(const Move& m);
 
-    // Anwenden eines UCI-Zugs (z.B. "e2e4" oder "e7e8q")
+    // Anwenden eines Zugs
     bool applyUci(const std::string& uci);
 
     // Undo letzter Zug

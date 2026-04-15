@@ -106,7 +106,7 @@ bool makeMove(Board& board, const Move& move, UndoState& undo) {
     undo.prevKingSq[WHITE] = board.kingSq[WHITE];
     undo.prevKingSq[BLACK] = board.kingSq[BLACK];
 
-    // Neu: Occupancy sichern
+    // Occupancy sichern
     undo.prevOccupied[WHITE] = board.occupied[WHITE];
     undo.prevOccupied[BLACK] = board.occupied[BLACK];
     undo.prevAllOccupied = board.allOccupied;
@@ -127,7 +127,7 @@ bool makeMove(Board& board, const Move& move, UndoState& undo) {
     // Merken, was vor dem Zug gültig war (EP muss gegen den alten Zustand geprüft werden)
     const uint64_t oldEpTarget = board.enPassantTarget;
 
-    // Wichtig: Viele Validierungen prüfen absichtlich gegen den alten Zustand.
+    // Viele Validierungen prüfen absichtlich gegen den alten Zustand.
     const uint64_t oldAllOccupied = board.allOccupied;
 
     // EP-Target wird nach jedem Zug gelöscht, nur bei Pawn DOUBLE_PUSH neu gesetzt.
@@ -308,8 +308,6 @@ void unmakeMove(Board& board, const Move& move, const UndoState& undo) {
     board.blackKingsideCastle = undo.prevBlackKingsideCastle;
     board.blackQueensideCastle = undo.prevBlackQueensideCastle;
 
-    // Bitboards wie bisher zurückbauen
-    // ABER: Occupancy nicht mehr recompute'n, sondern direkt wiederherstellen:
     Color side = board.sideToMove;
     Color enemy = (side == WHITE) ? BLACK : WHITE;
 
@@ -350,7 +348,6 @@ void unmakeMove(Board& board, const Move& move, const UndoState& undo) {
         board.bitboards[enemy][undo.capturedPiece] |= sqBB(undo.capturedSquare);
     }
 
-    // Occupancy/AllOccupied exakt wiederherstellen (kein recompute)
     board.occupied[WHITE] = undo.prevOccupied[WHITE];
     board.occupied[BLACK] = undo.prevOccupied[BLACK];
     board.allOccupied = undo.prevAllOccupied;

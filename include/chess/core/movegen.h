@@ -40,7 +40,7 @@ struct MoveList {
     inline Move& operator[](int i) { return data[i]; }
 };
 
-// ---------------- Buffer-APIs ----------------
+// Buffer-APIs
 
 // pseudo-legal in out
 void generatePseudoLegalMoves(const Board& board, Color side, MoveList& out);
@@ -48,7 +48,7 @@ void generatePseudoLegalMoves(const Board& board, Color side, MoveList& out);
 // legal in out (nutzt make/unmake + isSquareAttacked Filter)
 void generateLegalMoves(Board& board, Color side, MoveList& out);
 
-// ---------------- Kompatibilitäts-Wrapper ----------------
+// Kompatibilitäts-Wrapper
 
 // pseudo-legal (ohne "König darf nicht im Schach stehen")
 std::vector<Move> generatePseudoLegalMoves(const Board &board, Color side);

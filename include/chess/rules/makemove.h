@@ -13,7 +13,7 @@ struct UndoState {
 
     int prevKingSq[2] = {-1, -1};
 
-    // Neu: Occupancy/AllOccupied fürs schnelle Undo (und als Sicherheitsnetz)
+    // Occupancy/AllOccupied für schnelles Undo
     uint64_t prevOccupied[2] = {0ULL, 0ULL};
     uint64_t prevAllOccupied = 0ULL;
 

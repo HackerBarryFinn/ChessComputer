@@ -123,8 +123,6 @@ static int kingPawnShieldPenalty(const Board& b, Color side) {
 
     const uint64_t pawns = b.bitboards[side][PAWN];
 
-    // Wir prüfen 1–2 Reihen "vor" dem König in den Files (kFile-1..kFile+1)
-    // White: vorwärts = +1/+2 Rank; Black: -1/-2 Rank.
     int penalty = 0;
 
     for (int df = -1; df <= 1; ++df) {
